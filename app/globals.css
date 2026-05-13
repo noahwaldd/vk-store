@@ -1,0 +1,246 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-street-lime: var(--street-lime);
+  --color-street-orange: var(--street-orange);
+  --color-asphalt: var(--asphalt);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: var(--font-inter), sans-serif;
+  --font-display: var(--font-bebas), sans-serif;
+  --font-graffiti: var(--font-badaboom), cursive;
+  --animate-fade-in-up: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-pulse-slow: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-marquee: marquee 22s linear infinite;
+  
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes pulse-slow {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+}
+
+:root {
+  --radius: 0;
+  --background: #fffdf7;
+  --foreground: #12100d;
+  --card: #fffdf7;
+  --card-foreground: #12100d;
+  --popover: #fffdf7;
+  --popover-foreground: #12100d;
+  --primary: #12100d;
+  --primary-foreground: #fffdf7;
+  --secondary: #f0ece2;
+  --secondary-foreground: #12100d;
+  --muted: #e7e0d2;
+  --muted-foreground: #6b6257;
+  --accent: #d6ff31;
+  --accent-foreground: #12100d;
+  --destructive: #ef4444;
+  --street-lime: #d6ff31;
+  --street-orange: #ff5a1f;
+  --asphalt: #201f1b;
+  --border: #d8d0c1;
+  --input: #d8d0c1;
+  --ring: #12100d;
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  letter-spacing: 0;
+}
+
+.container-shell {
+  width: min(100% - 2rem, 1440px);
+  margin-inline: auto;
+}
+
+.focus-ring {
+  outline: none;
+}
+
+.focus-ring:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 35%, transparent);
+}
+
+.marquee-track {
+  animation: var(--animate-marquee);
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+.dynasty-floating-actions {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 50;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.dynasty-scroll-reset,
+.dynasty-whatsapp-float {
+  display: grid;
+  width: 3.25rem;
+  height: 3.25rem;
+  place-items: center;
+  border-radius: 999px;
+  box-shadow: 0 14px 30px rgb(0 0 0 / 22%);
+  transition:
+    transform 180ms ease,
+    opacity 180ms ease,
+    background-color 180ms ease;
+}
+
+.dynasty-scroll-reset {
+  border: 1px solid var(--border);
+  background: white;
+  color: var(--foreground);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(0.75rem);
+}
+
+.dynasty-scroll-reset[data-visible="true"] {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.dynasty-whatsapp-float {
+  background: #25d366;
+  color: white;
+}
+
+.dynasty-scroll-reset:hover,
+.dynasty-whatsapp-float:hover {
+  transform: translateY(-2px);
+}
+
+@keyframes whatsapp-wiggle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-2px) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(2px) rotate(2deg);
+  }
+  75% {
+    transform: translateY(-1px) rotate(-1deg);
+  }
+}
+
+.whatsapp-wiggle {
+  animation: whatsapp-wiggle 2s ease-in-out infinite;
+}
+
+.hero-motion-mark {
+  position: absolute;
+  right: clamp(1rem, 6vw, 6rem);
+  bottom: clamp(2rem, 9vw, 6rem);
+  width: min(34vw, 360px);
+  color: var(--primary);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.hero-motion-mark path {
+  stroke-dasharray: 680;
+  stroke-dashoffset: 680;
+  animation: hero-stroke 2.8s ease-out 0.3s forwards;
+}
+
+.hero-motion-mark circle {
+  transform-origin: center;
+  animation: hero-pulse 2.6s ease-in-out infinite;
+}
+
+@keyframes hero-stroke {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes hero-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+}

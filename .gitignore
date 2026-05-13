@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+
+.next/
+node_modules/
+
+*.log
+next-dev-*.log
+next-dev-*.err.log
+
+dist/
+build/
+coverage/

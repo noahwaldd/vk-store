@@ -1,0 +1,49 @@
+export type Category = {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+};
+
+export type ProductImage = {
+  id: string;
+  product_id: string;
+  url: string;
+  alt?: string | null;
+  position: number;
+};
+
+export type ProductVariation = {
+  label: string;
+  values: string[];
+};
+
+export type Product = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  price: number;
+  compare_at_price?: number | null;
+  category_id: string;
+  category?: Category | null;
+  stock: number;
+  variations: ProductVariation[];
+  images: ProductImage[];
+  featured: boolean;
+  deleted_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type ProductInput = {
+  name: string;
+  description: string;
+  price: number;
+  compare_at_price?: number | null;
+  category_id: string;
+  stock: number;
+  variations?: ProductVariation[];
+  featured?: boolean;
+  image_url?: string;
+};
