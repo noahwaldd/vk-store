@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { updateCouponsAction } from "@/app/admin/cupons/actions";
 import { CouponManager } from "@/components/CouponManager";
+import { getCategories } from "@/lib/categories";
 import { getCouponsSetting } from "@/lib/site-settings";
 
 export const metadata: Metadata = {
@@ -10,7 +11,10 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminCouponsPage() {
-  const coupons = await getCouponsSetting();
+  const [coupons, categories] = await Promise.all([
+    getCouponsSetting(),
+    getCategories(),
+  ]);
 
   return (
     <div className="grid gap-6">
@@ -18,11 +22,15 @@ export default async function AdminCouponsPage() {
         <p className="text-sm font-bold uppercase text-primary">Admin</p>
         <h1 className="mt-2 text-3xl font-black">Cupons</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Crie descontos por percentual ou valor fixo para aparecerem no drawer de cupons.
+          Controle descontos por período, limite de uso, subtotal, quantidade e categorias.
         </p>
       </div>
 
-      <CouponManager coupons={coupons} action={updateCouponsAction} />
+      <CouponManager
+        coupons={coupons}
+        categories={categories}
+        action={updateCouponsAction}
+      />
     </div>
   );
 }

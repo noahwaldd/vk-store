@@ -86,6 +86,10 @@ export async function syncCartItemsAction(items: CartItem[]) {
         slug: product.slug,
         price: Number(product.price),
         stock,
+        category_id: product.category_id,
+        compare_at_price: product.compare_at_price
+          ? Number(product.compare_at_price)
+          : null,
         images: product.images.map((image) => ({
           id: image.id,
           product_id: image.product_id,

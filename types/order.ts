@@ -1,7 +1,17 @@
 import type { Product } from "@/types/product";
 
 export type CartItem = {
-  product: Pick<Product, "id" | "name" | "slug" | "price" | "stock" | "images">;
+  product: Pick<
+    Product,
+    | "id"
+    | "name"
+    | "slug"
+    | "price"
+    | "stock"
+    | "images"
+    | "category_id"
+    | "compare_at_price"
+  >;
   quantity: number;
   variation?: string;
 };

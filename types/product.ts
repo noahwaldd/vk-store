@@ -29,7 +29,7 @@ export type Product = {
   description: string;
   price: number;
   compare_at_price?: number | null;
-  category_id: string;
+  category_id: string | null;
   category?: Category | null;
   stock: number;
   variations: ProductVariation[];

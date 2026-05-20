@@ -10,15 +10,7 @@ function optionalText(minLength: number, message: string) {
     });
 }
 
-export const checkoutProfileSchema = z.object({
-  name: z.string().trim().min(3, "Informe seu nome completo."),
-  email: z.string().trim().toLowerCase().email("Informe um e-mail válido."),
-  phone: z
-    .string()
-    .transform((value) => value.replace(/\D/g, ""))
-    .refine((value) => value.length >= 10 && value.length <= 11, {
-      message: "Informe um telefone com DDD.",
-    }),
+const checkoutAddressFields = {
   cep: z
     .string()
     .trim()
@@ -37,6 +29,21 @@ export const checkoutProfileSchema = z.object({
     .refine((value) => !value || value.length === 2, {
       message: "Informe a UF com 2 letras ou deixe em branco.",
     }),
+};
+
+export const checkoutAddressSchema = z.object(checkoutAddressFields);
+
+export const checkoutProfileSchema = z.object({
+  name: z.string().trim().min(3, "Informe seu nome completo."),
+  email: z.string().trim().toLowerCase().email("Informe um e-mail válido."),
+  phone: z
+    .string()
+    .transform((value) => value.replace(/\D/g, ""))
+    .refine((value) => value.length >= 10 && value.length <= 11, {
+      message: "Informe um telefone com DDD.",
+    }),
+  ...checkoutAddressFields,
 });
 
+export type CheckoutAddressFormValues = z.infer<typeof checkoutAddressSchema>;
 export type CheckoutProfileFormValues = z.infer<typeof checkoutProfileSchema>;

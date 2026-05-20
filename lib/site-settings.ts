@@ -3,6 +3,7 @@ import "server-only";
 import {
   defaultCoupons,
   normalizeCouponCode,
+  type CouponAppliesTo,
   type DiscountCoupon,
 } from "@/lib/coupons";
 import { prisma } from "@/lib/db/prisma";
@@ -194,6 +195,8 @@ function parseCoupons(value: unknown): DiscountCoupon[] {
       Number.isFinite(coupon.discountValue)
         ? coupon.discountValue
         : 0;
+    const appliesTo: CouponAppliesTo =
+      coupon.appliesTo === "categories" ? "categories" : "order";
 
     if (!code || discountValue <= 0) {
       return [];
@@ -219,6 +222,38 @@ function parseCoupons(value: unknown): DiscountCoupon[] {
           Number.isFinite(coupon.minimumSubtotal)
             ? Math.max(coupon.minimumSubtotal, 0)
             : 0,
+        minimumQuantity:
+          typeof coupon.minimumQuantity === "number" &&
+          Number.isFinite(coupon.minimumQuantity)
+            ? Math.max(Math.floor(coupon.minimumQuantity), 0)
+            : 0,
+        startsAt:
+          typeof coupon.startsAt === "string" && coupon.startsAt.trim()
+            ? coupon.startsAt.trim()
+            : null,
+        endsAt:
+          typeof coupon.endsAt === "string" && coupon.endsAt.trim()
+            ? coupon.endsAt.trim()
+            : null,
+        usageLimit:
+          typeof coupon.usageLimit === "number" && Number.isFinite(coupon.usageLimit)
+            ? Math.max(Math.floor(coupon.usageLimit), 1)
+            : null,
+        usageLimitPerCustomer:
+          typeof coupon.usageLimitPerCustomer === "number" &&
+          Number.isFinite(coupon.usageLimitPerCustomer)
+            ? Math.max(Math.floor(coupon.usageLimitPerCustomer), 1)
+            : null,
+        usedCount:
+          typeof coupon.usedCount === "number" && Number.isFinite(coupon.usedCount)
+            ? Math.max(Math.floor(coupon.usedCount), 0)
+            : 0,
+        appliesTo,
+        categoryIds:
+          appliesTo === "categories" && Array.isArray(coupon.categoryIds)
+            ? coupon.categoryIds.filter((id): id is string => typeof id === "string")
+            : [],
+        excludeSaleItems: Boolean(coupon.excludeSaleItems),
         enabled:
           typeof coupon.enabled === "boolean" ? coupon.enabled : true,
       },
@@ -273,7 +308,39 @@ export async function getCouponsSetting() {
     },
   });
 
-  return parseCoupons(setting?.value);
+  const coupons = parseCoupons(setting?.value);
+  const codes = coupons.map((coupon) => coupon.code);
+
+  if (!codes.length) {
+    return coupons;
+  }
+
+  const usage = await prisma.order.groupBy({
+    by: ["coupon_code"],
+    where: {
+      coupon_code: {
+        in: codes,
+      },
+      status: {
+        not: "canceled",
+      },
+    },
+    _count: {
+      _all: true,
+    },
+  });
+  const usageByCode = new Map(
+    usage.flatMap((item) =>
+      item.coupon_code
+        ? [[item.coupon_code, item._count._all] as const]
+        : [],
+    ),
+  );
+
+  return coupons.map((coupon) => ({
+    ...coupon,
+    usedCount: usageByCode.get(coupon.code) ?? 0,
+  }));
 }
 
 export async function updateLoginImageSetting(setting: LoginImageSetting) {

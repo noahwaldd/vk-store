@@ -11,9 +11,11 @@ export type RecentlyViewedProduct = Pick<
   | "price"
   | "compare_at_price"
   | "stock"
+  | "category_id"
   | "images"
   | "category"
   | "variations"
+  | "featured"
 >;
 
 const recentlyViewedKey = "vkstore-recently-viewed";
@@ -28,9 +30,11 @@ function toRecentlyViewedProduct(product: Product): RecentlyViewedProduct {
     price: product.price,
     compare_at_price: product.compare_at_price,
     stock: product.stock,
+    category_id: product.category_id,
     images: product.images,
     category: product.category,
     variations: product.variations,
+    featured: product.featured,
   };
 }
 
@@ -75,9 +79,12 @@ function parseRecentlyViewed(value: string | null): RecentlyViewedProduct[] {
               ? product.compare_at_price
               : null,
           stock: typeof product.stock === "number" ? product.stock : 0,
+          category_id:
+            typeof product.category_id === "string" ? product.category_id : null,
           images: Array.isArray(product.images) ? product.images : [],
           category: product.category ?? null,
           variations: Array.isArray(product.variations) ? product.variations : [],
+          featured: Boolean(product.featured),
         },
       ];
     });

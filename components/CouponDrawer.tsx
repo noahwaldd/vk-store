@@ -18,6 +18,7 @@ import {
 import {
   applyCouponToItems,
   getCouponLabel,
+  isCouponOperational,
   type DiscountCoupon,
 } from "@/lib/coupons";
 import { formatCurrency } from "@/lib/utils";
@@ -34,7 +35,7 @@ export function CouponDrawer({ coupons }: CouponDrawerProps) {
   const applyCoupon = useCartStore((state) => state.applyCoupon);
   const clearCoupon = useCartStore((state) => state.clearCoupon);
   const availableCoupons = useMemo(
-    () => coupons.filter((coupon) => coupon.enabled),
+    () => coupons.filter((coupon) => isCouponOperational(coupon)),
     [coupons],
   );
   const appliedCoupon = applyCouponToItems(items, availableCoupons, couponCode);

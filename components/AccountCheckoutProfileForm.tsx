@@ -8,24 +8,21 @@ import { updateCheckoutProfileAction } from "@/app/conta/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatBrazilianPhone, onlyDigits } from "@/lib/input-format";
-import type { CheckoutProfileFormValues } from "@/schemas/checkout-profile-schema";
+import { onlyDigits } from "@/lib/input-format";
+import type { CheckoutAddressFormValues } from "@/schemas/checkout-profile-schema";
 
 type AccountCheckoutProfileFormProps = {
-  initialProfile: CheckoutProfileFormValues;
+  initialProfile: CheckoutAddressFormValues;
   hasAcceptedLegal: boolean;
 };
 
-type CheckoutProfileField = keyof CheckoutProfileFormValues;
+type CheckoutProfileField = keyof CheckoutAddressFormValues;
 
 export function AccountCheckoutProfileForm({
   initialProfile,
   hasAcceptedLegal,
 }: AccountCheckoutProfileFormProps) {
-  const [values, setValues] = useState<CheckoutProfileFormValues>({
-    ...initialProfile,
-    phone: formatBrazilianPhone(initialProfile.phone),
-  });
+  const [values, setValues] = useState<CheckoutAddressFormValues>(initialProfile);
   const [isPending, startTransition] = useTransition();
 
   function updateField(field: CheckoutProfileField, value: string) {
@@ -150,7 +147,7 @@ export function AccountCheckoutProfileForm({
           </p>
           <h2 className="mt-2 text-2xl font-black">Preenchimento automático</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Esses dados entram no checkout e na mensagem do WhatsApp para você não preencher tudo de novo.
+            Salve apenas o endereço usado nos pedidos. Nome, telefone e e-mail ficam nos dados principais da conta.
           </p>
         </div>
         {hasAcceptedLegal ? (
@@ -163,44 +160,6 @@ export function AccountCheckoutProfileForm({
 
       <form onSubmit={handleSubmit} className="mt-5 grid gap-4">
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="grid gap-2 md:col-span-2">
-            <Label htmlFor="checkout-name">Nome completo</Label>
-            <Input
-              id="checkout-name"
-              value={values.name}
-              onChange={(event) => updateField("name", event.target.value)}
-              autoComplete="name"
-              required
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="checkout-phone">Telefone/WhatsApp</Label>
-            <Input
-              id="checkout-phone"
-              type="tel"
-              inputMode="tel"
-              value={values.phone}
-              onChange={(event) =>
-                updateField("phone", formatBrazilianPhone(event.target.value))
-              }
-              autoComplete="tel"
-              maxLength={15}
-              placeholder="(61) 99999-9999"
-              required
-            />
-          </div>
-          <div className="grid gap-2 md:col-span-2">
-            <Label htmlFor="checkout-email">E-mail para pedidos</Label>
-            <Input
-              id="checkout-email"
-              type="email"
-              inputMode="email"
-              value={values.email}
-              onChange={(event) => updateField("email", event.target.value)}
-              autoComplete="email"
-              required
-            />
-          </div>
           <div className="grid gap-2">
             <Label htmlFor="checkout-cep">CEP</Label>
             <Input

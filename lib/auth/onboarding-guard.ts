@@ -37,6 +37,19 @@ const passwordResetWindows = [
   },
 ];
 
+const accountProfileWindows = [
+  {
+    scope: "account_profile_user_hour",
+    limit: 5,
+    windowMs: 60 * 60 * 1000,
+  },
+  {
+    scope: "account_profile_user_day",
+    limit: 12,
+    windowMs: 24 * 60 * 60 * 1000,
+  },
+];
+
 function getSecret() {
   return process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET ?? "local-dev-secret";
 }
@@ -168,6 +181,38 @@ export async function enforcePasswordResetRateLimit(email: string) {
         ok: false,
         message:
           "Muitas solicitações de recuperação. Aguarde alguns minutos e tente novamente.",
+      };
+    }
+  }
+
+  await prisma.onboardingRateLimit.deleteMany({
+    where: {
+      reset_at: {
+        lt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      },
+    },
+  });
+
+  return {
+    ok: true,
+  };
+}
+
+export async function enforceAccountProfileUpdateRateLimit(userId: string) {
+  const identifierHash = hashIdentifier(userId);
+
+  for (const window of accountProfileWindows) {
+    const count = await incrementWindow({
+      scope: window.scope,
+      identifierHash,
+      windowMs: window.windowMs,
+    });
+
+    if (count > window.limit) {
+      return {
+        ok: false,
+        message:
+          "Muitas alterações de dados na conta. Aguarde um pouco e tente novamente.",
       };
     }
   }

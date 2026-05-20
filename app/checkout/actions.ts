@@ -2,7 +2,7 @@
 
 import { getCurrentUser } from "@/lib/auth";
 import { createOrderFromCart } from "@/lib/checkout";
-import { findCouponByCode } from "@/lib/coupons";
+import { findCouponByCode, isCouponOperational } from "@/lib/coupons";
 import { prisma } from "@/lib/db/prisma";
 import { buildWhatsAppOrderUrl } from "@/lib/orders/whatsapp";
 import { getCouponsSetting } from "@/lib/site-settings";
@@ -56,7 +56,7 @@ export async function createCheckoutAction(
 
     const coupon = findCouponByCode(coupons, couponCode);
 
-    if (couponCode && !coupon) {
+    if (couponCode && (!coupon || !isCouponOperational(coupon))) {
       return {
         ok: false,
         message: "O cupom informado não está mais disponível.",

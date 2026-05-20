@@ -54,6 +54,8 @@ function normalizeCartProduct(product: CheckoutProduct): CartItem["product"] {
     slug: product.slug,
     price: Number(product.price),
     stock: product.stock,
+    category_id: product.category_id,
+    compare_at_price: product.compare_at_price ? Number(product.compare_at_price) : null,
     images: product.images.map((image) => ({
       id: image.id,
       product_id: image.product_id,
@@ -208,8 +210,46 @@ export async function createOrderFromCart({
     });
     const canonicalItems = buildCanonicalCheckoutItems(requestedItems, products);
     const appliedCoupon = applyCouponToItems(canonicalItems, coupons, couponCode);
+
+    if (appliedCoupon?.coupon.usageLimit) {
+      const totalUses = await tx.order.count({
+        where: {
+          coupon_code: appliedCoupon.coupon.code,
+          status: {
+            not: "canceled",
+          },
+        },
+      });
+
+      if (totalUses >= appliedCoupon.coupon.usageLimit) {
+        throw new Error("Esse cupom atingiu o limite de uso.");
+      }
+    }
+
+    if (appliedCoupon?.coupon.usageLimitPerCustomer) {
+      const customerUses = await tx.order.count({
+        where: {
+          coupon_code: appliedCoupon.coupon.code,
+          status: {
+            not: "canceled",
+          },
+          customer: {
+            email: customer.email,
+          },
+        },
+      });
+
+      if (customerUses >= appliedCoupon.coupon.usageLimitPerCustomer) {
+        throw new Error("Esse cupom já atingiu o limite para sua conta.");
+      }
+    }
+
     const orderItems = appliedCoupon
-      ? applyDiscountToCartItems(canonicalItems, appliedCoupon.discount)
+      ? applyDiscountToCartItems(
+          canonicalItems,
+          appliedCoupon.discount,
+          appliedCoupon.coupon,
+        )
       : canonicalItems;
 
     // Public checkout only validates availability. Stock changes must happen
@@ -231,6 +271,8 @@ export async function createOrderFromCart({
         customer_id: customerData.id,
         status: "pending",
         total,
+        coupon_code: appliedCoupon?.coupon.code ?? null,
+        coupon_discount: appliedCoupon?.discount ?? null,
         items: {
           create: orderItems.map((item) => ({
             product_id: item.product.id,
