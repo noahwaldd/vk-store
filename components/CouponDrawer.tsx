@@ -77,7 +77,6 @@ export function CouponDrawer({ coupons }: CouponDrawerProps) {
           className="coupon-floating-button"
         >
           <TicketPercent className="size-5" />
-          <span className="coupon-floating-label">Cupons</span>
           {appliedCoupon ? (
             <span className="coupon-floating-status absolute -right-1 -top-1 grid size-5 place-items-center rounded-full border-2 border-foreground bg-street-lime text-[10px] text-foreground">
               <Check className="size-3" />
@@ -88,19 +87,19 @@ export function CouponDrawer({ coupons }: CouponDrawerProps) {
       <SheetContent
         side="bottom"
         showCloseButton={false}
-        className="left-1/2 max-h-[90dvh] w-full max-w-xl -translate-x-1/2 overflow-hidden rounded-t-2xl border-2 border-b-0 border-foreground bg-background p-0"
+        className="coupon-sheet-content"
       >
-        <div className="flex flex-shrink-0 items-center justify-center pb-2 pt-5">
+        <div className="coupon-sheet-grabber flex flex-shrink-0 items-center justify-center pb-2 pt-5">
           <div className="h-1 w-10 rounded-full bg-border" />
         </div>
-        <SheetHeader className="items-center px-6 pb-2 text-center">
+        <SheetHeader className="coupon-sheet-header items-center px-6 pb-2 text-center">
           <SheetTitle className="text-base font-black">Cupons de Desconto</SheetTitle>
           <SheetDescription>
             Adicione cupom de desconto no carrinho.
           </SheetDescription>
         </SheetHeader>
 
-        <nav className="flex border-b-2 border-border px-6">
+        <nav className="coupon-sheet-tabs flex border-b-2 border-border px-6">
           <button
             type="button"
             className={`flex-1 border-b-2 py-2 text-sm font-black ${
@@ -125,9 +124,9 @@ export function CouponDrawer({ coupons }: CouponDrawerProps) {
           </button>
         </nav>
 
-        <div className="max-h-[calc(90dvh-152px)] overflow-y-auto px-6 py-4">
+        <div className="coupon-sheet-body max-h-[calc(90dvh-152px)] overflow-y-auto px-6 py-4">
           {activeTab === "available" ? (
-            <div className="grid gap-3">
+            <div className="coupon-list grid gap-3">
               {availableCoupons.map((coupon) => {
                 const selected = couponCode === coupon.code;
                 const result = applyCouponToItems(items, availableCoupons, coupon.code);
@@ -136,7 +135,7 @@ export function CouponDrawer({ coupons }: CouponDrawerProps) {
                   <button
                     key={coupon.id}
                     type="button"
-                    className={`grid grid-cols-[44px_1fr_auto] gap-3 border-2 p-4 text-left transition-colors ${
+                    className={`coupon-card grid grid-cols-[44px_1fr_auto] gap-3 border-2 p-4 text-left transition-colors ${
                       selected
                         ? "border-foreground bg-street-lime/35"
                         : "border-border bg-background hover:border-foreground hover:bg-muted/35"
@@ -177,7 +176,7 @@ export function CouponDrawer({ coupons }: CouponDrawerProps) {
           ) : (
             <div className="grid gap-3 text-center text-sm text-muted-foreground">
               {appliedCoupon ? (
-                <div className="border-2 border-border p-4 text-left">
+                <div className="coupon-history-card border-2 border-border p-4 text-left">
                   <p className="font-black text-foreground">
                     {appliedCoupon.coupon.code}
                   </p>

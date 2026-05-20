@@ -9,7 +9,6 @@ import {
   ExternalLink,
   MessageCircle,
   PencilLine,
-  Save,
   ShieldCheck,
   UserRound,
 } from "lucide-react";
@@ -407,7 +406,7 @@ export function CheckoutForm({
             disabled={isPending}
             className="checkout-cta h-auto min-h-12 whitespace-normal py-3 text-center leading-tight sm:whitespace-nowrap"
           >
-            {isAuthenticated ? <Save className="size-4" /> : <MessageCircle className="size-4" />}
+            <MessageCircle className="size-4" />
             {isPending ? "Preparando WhatsApp..." : "Finalizar pedido pelo WhatsApp"}
           </Button>
         </div>
