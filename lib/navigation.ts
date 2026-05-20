@@ -4,8 +4,8 @@ import {
   navigationItemSchema,
   type NavigationItemPayload,
 } from "@/schemas/navigation-schema";
+import { prisma } from "@/lib/db/prisma";
 import type { NavigationItem, NavigationLocation } from "@/types/navigation";
-import { requireSupabaseAdmin, supabase, supabaseAdmin } from "@/lib/supabase";
 
 const fallbackNavigation: Record<NavigationLocation, NavigationItem[]> = {
   primary: [
@@ -38,7 +38,7 @@ const fallbackNavigation: Record<NavigationLocation, NavigationItem[]> = {
     },
     {
       id: "fallback-footer-checkout",
-      label: "Checkout",
+      label: "Finalizar pedido",
       href: "/checkout",
       location: "footer",
       position: 30,
@@ -55,32 +55,185 @@ const fallbackNavigation: Record<NavigationLocation, NavigationItem[]> = {
   ],
 };
 
+const requiredNavigationItems: Record<NavigationLocation, NavigationItem[]> = {
+  primary: [
+    {
+      id: "required-primary-products",
+      label: "Produtos",
+      href: "/produtos",
+      location: "primary",
+      position: 10,
+      enabled: true,
+      protected: true,
+    },
+  ],
+  secondary: [],
+  footer: [
+    {
+      id: "required-footer-products",
+      label: "Produtos",
+      href: "/produtos",
+      location: "footer",
+      position: 10,
+      enabled: true,
+      protected: true,
+    },
+    {
+      id: "required-footer-cart",
+      label: "Carrinho",
+      href: "/carrinho",
+      location: "footer",
+      position: 20,
+      enabled: true,
+      protected: true,
+    },
+    {
+      id: "required-footer-checkout",
+      label: "Finalizar pedido",
+      href: "/checkout",
+      location: "footer",
+      position: 30,
+      enabled: true,
+      protected: true,
+    },
+    {
+      id: "required-footer-login",
+      label: "Login",
+      href: "/login",
+      location: "footer",
+      position: 40,
+      enabled: true,
+      protected: true,
+    },
+  ],
+};
+
+const sensitiveHrefs = new Set([
+  "/admin",
+  "/conta",
+  "/login",
+  "/produtos",
+  "/carrinho",
+  "/checkout",
+]);
+
+function normalizeNavigationItem(item: {
+  id: string;
+  label: string;
+  href: string;
+  location: string;
+  position: number;
+  enabled: boolean;
+  created_at?: Date | null;
+  updated_at?: Date | null;
+}): NavigationItem {
+  return {
+    id: item.id,
+    label: item.label,
+    href: item.href,
+    location: item.location as NavigationLocation,
+    position: item.position,
+    enabled: item.enabled,
+    protected: isProtectedNavigationHref(item.href),
+    created_at: item.created_at?.toISOString(),
+    updated_at: item.updated_at?.toISOString(),
+  };
+}
+
+function isProtectedNavigationHref(href: string) {
+  return sensitiveHrefs.has(href);
+}
+
+function withRequiredNavigationItems(
+  location: NavigationLocation,
+  items: NavigationItem[],
+) {
+  const merged = [...items];
+
+  requiredNavigationItems[location].forEach((requiredItem) => {
+    const existingItem = merged.find((item) => item.href === requiredItem.href);
+
+    if (existingItem) {
+      existingItem.protected = true;
+      existingItem.enabled = true;
+      return;
+    }
+
+    merged.push(requiredItem);
+  });
+
+  return merged.sort((left, right) => {
+    if (left.position !== right.position) {
+      return left.position - right.position;
+    }
+
+    return left.label.localeCompare(right.label);
+  });
+}
+
 async function getFallbackNavigation(location: NavigationLocation) {
   const baseItems = fallbackNavigation[location];
 
-  if (location === "footer" || !supabase) {
+  if (location === "footer") {
     return baseItems;
   }
 
-  const { data, error } = await supabase
-    .from("categories")
-    .select("id, name, slug")
-    .order("name", { ascending: true });
+  const categoryItems = await getCategoryNavigationItems(location);
 
-  if (error || !data) {
-    return baseItems;
-  }
+  return location === "primary" ? [...baseItems, ...categoryItems] : categoryItems;
+}
 
-  const categoryItems = data.map((category, index) => ({
+async function getCategoryNavigationItems(location: NavigationLocation) {
+  const categories = await prisma.category.findMany({
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      position: true,
+    },
+    orderBy: [{ position: "asc" }, { name: "asc" }, { id: "asc" }],
+  });
+
+  return categories.map((category, index) => ({
     id: `fallback-${location}-${category.id}`,
     label: category.name,
     href: `/produtos?categoria=${category.slug}`,
     location,
-    position: (index + 2) * 10,
+    position: location === "primary" ? 20 + index * 10 : 10 + index * 10,
     enabled: true,
   }));
+}
 
-  return location === "primary" ? [...baseItems, ...categoryItems] : categoryItems;
+function mergeByHref(items: NavigationItem[]) {
+  const merged = new Map<string, NavigationItem>();
+
+  items.forEach((item) => {
+    const existingItem = merged.get(item.href);
+
+    if (!existingItem) {
+      merged.set(item.href, item);
+      return;
+    }
+
+    if (item.id.startsWith(`fallback-${item.location}-`)) {
+      merged.set(item.href, {
+        ...item,
+        protected: existingItem.protected,
+      });
+      return;
+    }
+
+    if (existingItem.protected) {
+      merged.set(item.href, {
+        ...item,
+        protected: true,
+        enabled: true,
+        position: Math.min(existingItem.position, item.position),
+      });
+    }
+  });
+
+  return Array.from(merged.values());
 }
 
 function parseNavigationPayload(formData: FormData): NavigationItemPayload {
@@ -99,97 +252,115 @@ export async function getNavigationItems(
 ): Promise<NavigationItem[]> {
   noStore();
 
-  const client = options?.includeDisabled ? (supabaseAdmin ?? supabase) : supabase;
+  const items = await prisma.navigationItem.findMany({
+    where: {
+      location,
+      ...(options?.includeDisabled ? {} : { enabled: true }),
+    },
+    orderBy: [{ position: "asc" }, { label: "asc" }],
+  });
 
-  if (!client) {
-    return getFallbackNavigation(location);
+  if (!items.length && !options?.includeDisabled) {
+    return withRequiredNavigationItems(location, await getFallbackNavigation(location));
   }
 
-  let query = client
-    .from("navigation_items")
-    .select("*")
-    .eq("location", location)
-    .order("position", { ascending: true })
-    .order("label", { ascending: true });
+  const normalizedItems = items.map(normalizeNavigationItem);
 
-  if (!options?.includeDisabled) {
-    query = query.eq("enabled", true);
+  if (!options?.includeDisabled && (location === "primary" || location === "secondary")) {
+    return withRequiredNavigationItems(
+      location,
+      mergeByHref([...normalizedItems, ...(await getCategoryNavigationItems(location))]),
+    );
   }
 
-  const { data, error } = await query;
-
-  if (error || !data) {
-    return options?.includeDisabled ? [] : getFallbackNavigation(location);
-  }
-
-  return data as NavigationItem[];
+  return withRequiredNavigationItems(location, normalizedItems);
 }
 
 export async function getAllNavigationItems() {
   noStore();
 
-  const admin = supabaseAdmin ?? supabase;
+  const items = await prisma.navigationItem.findMany({
+    orderBy: [{ location: "asc" }, { position: "asc" }, { label: "asc" }],
+  });
 
-  if (!admin) {
-    return [
-      ...fallbackNavigation.primary,
-      ...fallbackNavigation.secondary,
-      ...fallbackNavigation.footer,
-    ];
-  }
-
-  const { data, error } = await admin
-    .from("navigation_items")
-    .select("*")
-    .order("location", { ascending: true })
-    .order("position", { ascending: true })
-    .order("label", { ascending: true });
-
-  if (error || !data) {
-    return [];
-  }
-
-  return data as NavigationItem[];
+  return items
+    .map(normalizeNavigationItem)
+    .filter((item) => !item.protected);
 }
 
 export async function createNavigationItem(formData: FormData) {
-  const admin = requireSupabaseAdmin();
   const payload = parseNavigationPayload(formData);
 
-  const { error } = await admin.from("navigation_items").insert({
-    ...payload,
-    enabled: Boolean(payload.enabled),
-  });
-
-  if (error) {
-    throw error;
+  if (isProtectedNavigationHref(payload.href)) {
+    throw new Error("Esse destino é protegido pelo sistema.");
   }
+
+  await prisma.navigationItem.create({
+    data: {
+      ...payload,
+      enabled: Boolean(payload.enabled),
+    },
+  });
 }
 
 export async function updateNavigationItem(id: string, formData: FormData) {
-  const admin = requireSupabaseAdmin();
   const payload = parseNavigationPayload(formData);
+  const currentItem = await prisma.navigationItem.findUnique({
+    where: {
+      id,
+    },
+  });
 
-  const { error } = await admin
-    .from("navigation_items")
-    .update({
+  if (!currentItem) {
+    throw new Error("Link não encontrado.");
+  }
+
+  if (
+    payload.href !== currentItem.href &&
+    isProtectedNavigationHref(payload.href)
+  ) {
+    throw new Error("Esse destino é protegido pelo sistema.");
+  }
+
+  if (isProtectedNavigationHref(currentItem.href)) {
+    if (
+      payload.href !== currentItem.href ||
+      payload.location !== currentItem.location ||
+      payload.enabled === false
+    ) {
+      throw new Error("Links sensíveis não podem ser removidos, ocultados ou redirecionados.");
+    }
+  }
+
+  await prisma.navigationItem.update({
+    where: {
+      id,
+    },
+    data: {
       ...payload,
       enabled: Boolean(payload.enabled),
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", id);
-
-  if (error) {
-    throw error;
-  }
+    },
+  });
 }
 
 export async function deleteNavigationItem(id: string) {
-  const admin = requireSupabaseAdmin();
+  const currentItem = await prisma.navigationItem.findUnique({
+    where: {
+      id,
+    },
+  });
 
-  const { error } = await admin.from("navigation_items").delete().eq("id", id);
-
-  if (error) {
-    throw error;
+  if (!currentItem) {
+    throw new Error("Link não encontrado.");
   }
+
+  if (isProtectedNavigationHref(currentItem.href)) {
+    throw new Error("Links sensíveis não podem ser removidos.");
+  }
+
+  await prisma.navigationItem.delete({
+    where: {
+      id,
+    },
+  });
 }

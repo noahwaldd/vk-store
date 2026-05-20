@@ -2,11 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect } from "react";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 
+import { RecentlyViewedProducts } from "@/components/RecentlyViewedProducts";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetFooter,
@@ -15,20 +18,37 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
+import { applyCouponToItems, type DiscountCoupon } from "@/lib/coupons";
 import { formatCurrency } from "@/lib/utils";
-import { useCartStore } from "@/store/cart-store";
+import { hydrateCartStore, useCartStore } from "@/store/cart-store";
 
-export function CartDrawer() {
+type CartDrawerProps = {
+  coupons: DiscountCoupon[];
+};
+
+export function CartDrawer({ coupons }: CartDrawerProps) {
   const items = useCartStore((state) => state.items);
+  const couponCode = useCartStore((state) => state.couponCode);
   const count = useCartStore((state) => state.count());
   const total = useCartStore((state) => state.total());
   const removeItem = useCartStore((state) => state.removeItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
+  const appliedCoupon = applyCouponToItems(items, coupons, couponCode);
+  const finalTotal = appliedCoupon?.total ?? total;
+
+  useEffect(() => {
+    void hydrateCartStore();
+  }, []);
 
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon" aria-label="Abrir carrinho" className="relative">
+        <Button
+          variant="outline"
+          size="icon"
+          aria-label="Abrir carrinho"
+          className={`relative h-12 w-12 sm:h-10 sm:w-10 ${count > 0 ? "cart-icon-pulse" : ""}`}
+        >
           <ShoppingBag />
           {count > 0 ? (
             <span className="absolute -right-2 -top-2 grid size-5 place-items-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">
@@ -37,16 +57,19 @@ export function CartDrawer() {
           ) : null}
         </Button>
       </SheetTrigger>
-      <SheetContent className="flex flex-col">
+      <SheetContent className="cart-drawer-content flex flex-col">
         <SheetHeader>
           <SheetTitle>Carrinho</SheetTitle>
-          <SheetDescription>Revise os itens antes de finalizar a compra.</SheetDescription>
+          <SheetDescription>Revise os itens antes de enviar o pedido.</SheetDescription>
         </SheetHeader>
 
         <div className="mt-6 flex-1 overflow-y-auto pr-1">
           {items.length === 0 ? (
-            <div className="rounded-none border-2 border-dashed border-foreground p-8 text-center text-sm text-muted-foreground">
-              Seu carrinho está vazio.
+            <div className="grid gap-4">
+              <div className="rounded-none border-2 border-dashed border-foreground p-8 text-center text-sm text-muted-foreground">
+                Seu carrinho está vazio.
+              </div>
+              <RecentlyViewedProducts limit={3} compact />
             </div>
           ) : (
             <div className="grid gap-4">
@@ -141,12 +164,32 @@ export function CartDrawer() {
             <span className="text-muted-foreground">Subtotal</span>
             <span className="text-lg font-black">{formatCurrency(total)}</span>
           </div>
-          <Button asChild size="lg" disabled={items.length === 0}>
-            <Link href="/checkout">Finalizar compra</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/carrinho">Ver carrinho</Link>
-          </Button>
+          {appliedCoupon ? (
+            <div className="flex items-center justify-between text-sm text-primary">
+              <span className="font-semibold">Cupom {appliedCoupon.coupon.code}</span>
+              <span className="font-black">-{formatCurrency(appliedCoupon.discount)}</span>
+            </div>
+          ) : null}
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-semibold">Total</span>
+            <span className="text-lg font-black">{formatCurrency(finalTotal)}</span>
+          </div>
+          {items.length > 0 ? (
+            <SheetClose asChild>
+              <Button asChild size="lg" className="checkout-cta">
+                <Link href="/checkout">Finalizar pedido</Link>
+              </Button>
+            </SheetClose>
+          ) : (
+            <Button size="lg" disabled>
+              Finalizar pedido
+            </Button>
+          )}
+          <SheetClose asChild>
+            <Button asChild variant="outline">
+              <Link href="/carrinho">Ver carrinho</Link>
+            </Button>
+          </SheetClose>
         </SheetFooter>
       </SheetContent>
     </Sheet>

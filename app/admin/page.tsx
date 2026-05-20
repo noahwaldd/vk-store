@@ -26,17 +26,17 @@ export default async function AdminPage() {
   const styleReferences = [
     {
       title: "Marca",
-      text: "Use a fonte Badaboom nos lockups grandes e Bebas Neue nos títulos de seção.",
+      text: "Mantenha o nome da loja sempre igual e evite misturar muitos estilos de letra na mesma arte.",
       icon: Type,
     },
     {
-      title: "Conteúdo",
-      text: "Badaboom / Urban Jungle é o tom principal para marquee, drops e campanhas.",
+      title: "Textos",
+      text: "Escreva frases curtas, com preço, tamanho e benefício claros para o cliente entender rápido.",
       icon: Boxes,
     },
     {
       title: "Produto",
-      text: "Priorize foto 4:5, fundo limpo, peça visível e descrição curta com material e variação.",
+      text: "Use fotos bem iluminadas, produto inteiro aparecendo e descrição simples com material, medida e variação.",
       icon: ImageIcon,
     },
   ];
@@ -86,7 +86,7 @@ export default async function AdminPage() {
       <section className="grid gap-4 border-2 border-foreground bg-background p-5">
         <div>
           <p className="font-display text-sm uppercase tracking-[0.2em] text-muted-foreground">
-            Configuracao da loja
+            Configuração da loja
           </p>
           <h2 className="mt-2 font-display text-3xl uppercase leading-none">
             Controle o que aparece no site
@@ -108,7 +108,7 @@ export default async function AdminPage() {
           <Button asChild variant="outline" className="h-auto justify-start p-4">
             <Link href="/admin/navegacao">
               <Navigation />
-              Navegacao
+              Navegação
             </Link>
           </Button>
         </div>
@@ -120,7 +120,7 @@ export default async function AdminPage() {
             Guia visual
           </p>
           <h2 className="mt-2 font-display text-3xl uppercase leading-none">
-            Referências para manter a loja no padrão
+            Dicas simples para manter a loja bonita
           </h2>
         </div>
         <div className="grid gap-4 md:grid-cols-3">

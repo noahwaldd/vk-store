@@ -1,7 +1,12 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { NextConfig } from "next";
+
+const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
+  outputFileTracingRoot: projectRoot,
   images: {
     remotePatterns: [
       {
@@ -10,11 +15,19 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "*.supabase.co",
+        hostname: "chatgpt.com",
       },
       {
         protocol: "https",
-        hostname: "chatgpt.com",
+        hostname: "*.cloudfront.net",
+      },
+      {
+        protocol: "https",
+        hostname: "*.s3.amazonaws.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.s3.us-east-1.amazonaws.com",
       },
       {
         protocol: "https",
@@ -27,10 +40,6 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "media.discordapp.net",
-      },
-            {
-        protocol: "https",
-        hostname: "cdn.discordapp.com",
       },
     ],
   },

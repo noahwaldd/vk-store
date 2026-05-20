@@ -12,3 +12,6 @@ next-dev-*.err.log
 dist/
 build/
 coverage/
+
+lib/generated/prisma/
+.agents

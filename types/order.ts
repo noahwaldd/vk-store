@@ -21,7 +21,6 @@ export type Order = {
   customer_id: string;
   status: OrderStatus;
   total: number;
-  mercado_pago_preference_id?: string | null;
   created_at: string;
 };
 

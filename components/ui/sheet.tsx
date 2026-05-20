@@ -28,15 +28,17 @@ function SheetContent({
   className,
   children,
   side = "right",
+  showCloseButton = true,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   side?: "top" | "right" | "bottom" | "left";
+  showCloseButton?: boolean;
 }) {
   const sideClasses = {
     top: "inset-x-0 top-0 border-b",
     right: "inset-y-0 right-0 h-full w-11/12 max-w-md border-l",
     bottom: "inset-x-0 bottom-0 border-t",
-    left: "inset-y-0 left-0 h-full w-11/12 max-w-md border-r",
+    left: "inset-y-0 left-0 h-full w-[min(88vw,22rem)] border-r",
   };
 
   return (
@@ -52,10 +54,12 @@ function SheetContent({
         {...props}
       >
         {children}
-        <DialogPrimitive.Close className="focus-ring absolute right-4 top-4 rounded-md opacity-70 transition-opacity hover:opacity-100">
-          <X className="size-4" />
-          <span className="sr-only">Fechar</span>
-        </DialogPrimitive.Close>
+        {showCloseButton ? (
+          <DialogPrimitive.Close className="focus-ring absolute right-3 top-3 grid size-11 place-items-center rounded-md opacity-70 transition-opacity hover:opacity-100">
+            <X className="size-4" />
+            <span className="sr-only">Fechar</span>
+          </DialogPrimitive.Close>
+        ) : null}
       </DialogPrimitive.Content>
     </SheetPortal>
   );

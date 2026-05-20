@@ -9,8 +9,8 @@ import { NavigationManager } from "@/components/NavigationManager";
 import { getAllNavigationItems } from "@/lib/navigation";
 
 export const metadata: Metadata = {
-  title: "Navegacao Admin",
-  description: "Gerencie links do menu, barra superior e rodape da loja.",
+  title: "Navegação Admin",
+  description: "Gerencie links do menu e rodapé da loja.",
 };
 
 export default async function AdminNavigationPage() {
@@ -20,10 +20,10 @@ export default async function AdminNavigationPage() {
     <div className="grid gap-6">
       <div>
         <p className="text-sm font-bold uppercase text-primary">Admin</p>
-        <h1 className="mt-2 text-3xl font-black">Navegacao</h1>
+        <h1 className="mt-2 text-3xl font-black">Navegação</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Altere os links que aparecem no menu principal, na barra preta e no
-          rodape sem editar codigo. Para apontar para uma categoria, use um
+          Altere os links que aparecem no menu principal e no rodapé sem editar
+          código. Para apontar para uma categoria, use um
           destino como /produtos?categoria=roupas.
         </p>
       </div>

@@ -19,6 +19,12 @@ type ProductCardProps = {
 export function ProductCard({ product }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem);
   const image = product.images[0]?.url;
+  const firstVariation = product.variations[0];
+  const visibleVariationValues = firstVariation?.values.slice(0, 4) ?? [];
+  const hiddenVariationCount =
+    firstVariation && firstVariation.values.length > visibleVariationValues.length
+      ? firstVariation.values.length - visibleVariationValues.length
+      : 0;
   const hasDiscount =
     product.compare_at_price && product.compare_at_price > product.price;
 
@@ -38,6 +44,7 @@ export function ProductCard({ product }: ProductCardProps) {
               fill
               sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
               className="object-cover transition-transform duration-300 group-hover:scale-105"
+              unoptimized
             />
           ) : (
             <div className="grid h-full place-items-center text-sm text-muted-foreground">
@@ -45,7 +52,7 @@ export function ProductCard({ product }: ProductCardProps) {
             </div>
           )}
           {hasDiscount ? (
-            <Badge className="absolute left-3 top-3">
+            <Badge className="offer-badge absolute left-3 top-3">
               Oferta
             </Badge>
           ) : null}
@@ -53,7 +60,7 @@ export function ProductCard({ product }: ProductCardProps) {
       </Link>
 
       <div className="grid gap-3 p-4">
-        <div className="min-h-16">
+        <div className="min-h-20">
           <p className="text-xs font-semibold uppercase text-muted-foreground">
             {product.category?.name ?? "Produto"}
           </p>
@@ -63,6 +70,12 @@ export function ProductCard({ product }: ProductCardProps) {
           >
             {product.name}
           </Link>
+          {visibleVariationValues.length ? (
+            <p className="mt-2 line-clamp-1 text-xs font-medium text-muted-foreground">
+              Disponível: {visibleVariationValues.join(", ")}
+              {hiddenVariationCount ? ` +${hiddenVariationCount}` : ""}
+            </p>
+          ) : null}
         </div>
 
         <div className="flex items-end justify-between gap-3">
@@ -79,10 +92,30 @@ export function ProductCard({ product }: ProductCardProps) {
           </Badge>
         </div>
 
-        <Button onClick={handleAddToCart} disabled={product.stock <= 0} className="w-full">
-          <ShoppingCart />
-          Adicionar
-        </Button>
+        {firstVariation ? (
+          product.stock > 0 ? (
+            <Button asChild className="add-cart-cta w-full">
+              <Link href={`/produto/${product.slug}`}>
+                <ShoppingCart />
+                Comprar
+              </Link>
+            </Button>
+          ) : (
+            <Button disabled className="add-cart-cta w-full">
+              <ShoppingCart />
+              Esgotado
+            </Button>
+          )
+        ) : (
+          <Button
+            onClick={handleAddToCart}
+            disabled={product.stock <= 0}
+            className="add-cart-cta w-full"
+          >
+            <ShoppingCart />
+            Adicionar
+          </Button>
+        )}
       </div>
     </Card>
   );

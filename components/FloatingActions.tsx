@@ -5,7 +5,7 @@ import { ArrowUp } from "lucide-react";
 
 export function FloatingActions() {
   const [visible, setVisible] = useState(false);
-  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "5561999999999";
+  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "556292338635";
 
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > 300);
@@ -30,11 +30,11 @@ export function FloatingActions() {
         href={`https://wa.me/${whatsappNumber}`}
         target="_blank"
         rel="noreferrer"
-        className="dynasty-whatsapp-float"
+        className="dynasty-whatsapp-float whatsapp-pulse"
         aria-label="Conversar via WhatsApp"
       >
         <svg
-          className="size-8 whatsapp-wiggle"
+          className="size-8"
           fill="currentColor"
           viewBox="0 0 24 24"
           aria-hidden="true"

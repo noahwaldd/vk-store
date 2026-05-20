@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import {
   createCategoryAction,
   deleteCategoryAction,
+  reorderCategoriesAction,
   updateCategoryAction,
 } from "@/app/admin/categorias/actions";
 import { CategoryManager } from "@/components/CategoryManager";
@@ -23,16 +24,18 @@ export default async function AdminCategoriesPage() {
         <h1 className="mt-2 text-3xl font-black">Categorias</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Controle as categorias usadas no cadastro, nos filtros e nos links da
-          vitrine. Depois de criar uma categoria, use a tela de navegacao para
+          vitrine. Depois de criar uma categoria, use a tela de navegação para
           escolher se ela aparece no menu.
         </p>
       </div>
 
       <CategoryManager
+        key={categories.map((category) => `${category.id}:${category.position}`).join("|")}
         categories={categories}
         createAction={createCategoryAction}
         updateAction={updateCategoryAction}
         deleteAction={deleteCategoryAction}
+        reorderAction={reorderCategoriesAction}
       />
     </div>
   );

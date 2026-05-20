@@ -1,32 +1,50 @@
 "use client";
 
+import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 
 import { EmptyState } from "@/components/EmptyState";
+import { RecentlyViewedProducts } from "@/components/RecentlyViewedProducts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { applyCouponToItems, type DiscountCoupon } from "@/lib/coupons";
 import { formatCurrency } from "@/lib/utils";
-import { useCartStore } from "@/store/cart-store";
+import { hydrateCartStore, useCartStore } from "@/store/cart-store";
 
-export function CartPageClient() {
+type CartPageClientProps = {
+  coupons: DiscountCoupon[];
+};
+
+export function CartPageClient({ coupons }: CartPageClientProps) {
   const items = useCartStore((state) => state.items);
+  const couponCode = useCartStore((state) => state.couponCode);
   const total = useCartStore((state) => state.total());
   const removeItem = useCartStore((state) => state.removeItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
+  const appliedCoupon = applyCouponToItems(items, coupons, couponCode);
+  const finalTotal = appliedCoupon?.total ?? total;
+
+  useEffect(() => {
+    void hydrateCartStore();
+  }, []);
 
   if (!items.length) {
     return (
-      <EmptyState
-        title="Seu carrinho está vazio"
-        description="Adicione produtos para revisar o pedido e avançar para o checkout."
-      >
-        <Button asChild>
-          <Link href="/produtos">Ver produtos</Link>
-        </Button>
-      </EmptyState>
+      <div className="grid gap-6">
+        <EmptyState
+          title="Seu carrinho está vazio"
+          description="Adicione produtos para revisar e finalizar o pedido pelo WhatsApp."
+        >
+          <Button asChild>
+            <Link href="/produtos">Ver produtos</Link>
+          </Button>
+        </EmptyState>
+
+        <RecentlyViewedProducts limit={4} />
+      </div>
     );
   }
 
@@ -121,6 +139,14 @@ export function CartPageClient() {
             <span className="text-muted-foreground">Subtotal</span>
             <span className="font-semibold">{formatCurrency(total)}</span>
           </div>
+          {appliedCoupon ? (
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Cupom {appliedCoupon.coupon.code}</span>
+              <span className="font-semibold text-primary">
+                -{formatCurrency(appliedCoupon.discount)}
+              </span>
+            </div>
+          ) : null}
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Frete</span>
             <span className="font-semibold">Calculado no atendimento</span>
@@ -128,10 +154,10 @@ export function CartPageClient() {
           <Separator />
           <div className="flex justify-between">
             <span className="font-semibold">Total</span>
-            <span className="text-xl font-black">{formatCurrency(total)}</span>
+            <span className="text-xl font-black">{formatCurrency(finalTotal)}</span>
           </div>
-          <Button asChild size="lg">
-            <Link href="/checkout">Finalizar compra</Link>
+          <Button asChild size="lg" className="checkout-cta">
+            <Link href="/checkout">Finalizar pedido</Link>
           </Button>
         </CardContent>
       </Card>

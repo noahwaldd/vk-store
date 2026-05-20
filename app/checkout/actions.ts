@@ -1,23 +1,23 @@
 "use server";
 
 import { checkoutSchema, type CheckoutFormValues } from "@/schemas/checkout-schema";
-import {
-  createMercadoPagoPreference,
-  persistCheckoutOrder,
-  resolveCheckoutItems,
-} from "@/lib/checkout";
+import { createOrderFromCart } from "@/lib/checkout";
+import { findCouponByCode } from "@/lib/coupons";
+import { buildWhatsAppOrderUrl } from "@/lib/orders/whatsapp";
+import { getCouponsSetting } from "@/lib/site-settings";
 import type { CartItem } from "@/types/order";
 
 export type CheckoutActionResult = {
   ok: boolean;
   message: string;
-  redirectUrl?: string | null;
-  preferenceId?: string | null;
+  whatsappUrl?: string | null;
+  orderId?: string | null;
 };
 
 export async function createCheckoutAction(
   values: CheckoutFormValues,
   items: CartItem[],
+  couponCode?: string | null,
 ): Promise<CheckoutActionResult> {
   const parsed = checkoutSchema.safeParse(values);
 
@@ -36,35 +36,54 @@ export async function createCheckoutAction(
   }
 
   try {
-    const canonicalItems = await resolveCheckoutItems(items);
+    const coupons = await getCouponsSetting();
+    const coupon = findCouponByCode(coupons, couponCode);
 
-    const preference = await createMercadoPagoPreference({
-      items: canonicalItems,
-      customer: {
-        name: parsed.data.name,
-        email: parsed.data.email,
-        phone: parsed.data.phone,
-      },
-    });
+    if (couponCode && !coupon) {
+      return {
+        ok: false,
+        message: "O cupom informado não está mais disponível.",
+      };
+    }
 
-    await persistCheckoutOrder({
-      items: canonicalItems,
+    const order = await createOrderFromCart({
+      items,
+      couponCode,
+      coupons,
       customer: {
         name: parsed.data.name,
         email: parsed.data.email,
         phone: parsed.data.phone,
         document: parsed.data.document,
       },
-      preferenceId: preference.id ?? null,
+    });
+
+    const whatsappUrl = buildWhatsAppOrderUrl({
+      orderId: order.orderId,
+      items: order.items,
+      total: order.total,
+      couponCode: order.coupon?.coupon.code,
+      couponDiscount: order.coupon?.discount,
+      customer: {
+        name: parsed.data.name,
+        email: parsed.data.email,
+        phone: parsed.data.phone,
+        document: parsed.data.document,
+      },
+      delivery: {
+        cep: parsed.data.cep,
+        address: parsed.data.address,
+        number: parsed.data.number,
+        city: parsed.data.city,
+        state: parsed.data.state,
+      },
     });
 
     return {
       ok: true,
-      message:
-        preference.message ??
-        "Pagamento iniciado. Você será redirecionado para concluir a compra.",
-      redirectUrl: preference.init_point ?? preference.sandbox_init_point,
-      preferenceId: preference.id ?? null,
+      message: "Pedido criado. Vamos abrir o WhatsApp para finalizar.",
+      whatsappUrl,
+      orderId: order.orderId,
     };
   } catch (error) {
     return {
@@ -72,7 +91,7 @@ export async function createCheckoutAction(
       message:
         error instanceof Error
           ? error.message
-          : "Não foi possível iniciar o pagamento.",
+          : "Não foi possível finalizar o pedido.",
     };
   }
 }

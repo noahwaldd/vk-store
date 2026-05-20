@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Headphones, Mail, MessageCircle } from "lucide-react";
+import { Clock, Headphones, Mail, MessageCircle } from "lucide-react";
 
 import { getCurrentUser, isAdminUser } from "@/lib/auth";
 import { getNavigationItems } from "@/lib/navigation";
@@ -8,17 +8,25 @@ import { getNavigationItems } from "@/lib/navigation";
 export async function Footer() {
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "556292338635";
   const supportEmail =
-    process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "atendimento@vkstore.com.br";
+    process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "suporte@lojavkstore.com.br";
   const [user, footerItems, secondaryItems] = await Promise.all([
     getCurrentUser(),
     getNavigationItems("footer"),
     getNavigationItems("secondary"),
   ]);
-  const accountHref = user && isAdminUser(user) ? "/admin" : user ? "/" : "/login";
+  const accountHref = user && isAdminUser(user) ? "/admin" : user ? "/conta" : "/login";
   const accountLabel = user && isAdminUser(user) ? "Painel" : user ? "Conta" : "Login";
-  const navigationItems = footerItems.map((item) =>
-    item.href === "/login" ? { ...item, href: accountHref, label: accountLabel } : item,
-  );
+  const navigationItems = footerItems.map((item) => {
+    if (item.href === "/login") {
+      return { ...item, href: accountHref, label: accountLabel };
+    }
+
+    if (item.href === "/checkout") {
+      return { ...item, label: "Finalizar pedido" };
+    }
+
+    return item;
+  });
 
   return (
     <footer className="mt-auto border-t-2 border-foreground bg-foreground text-background">
@@ -68,6 +76,24 @@ export async function Footer() {
                 {item.label}
               </Link>
             ))}
+            <Link
+              href="/privacidade"
+              className="hover:text-background transition-colors hover:translate-x-1"
+            >
+              Privacidade
+            </Link>
+            <Link
+              href="/cookies"
+              className="hover:text-background transition-colors hover:translate-x-1"
+            >
+              Cookies
+            </Link>
+            <Link
+              href="/termos"
+              className="hover:text-background transition-colors hover:translate-x-1"
+            >
+              Termos de uso
+            </Link>
           </div>
         </div>
 
@@ -76,7 +102,11 @@ export async function Footer() {
           <div className="grid gap-4 text-base text-background/80 font-medium">
             <span className="flex items-center gap-3">
               <Headphones className="size-5" />
-              Segunda a sexta, horário comercial
+              Seg. a sex. 10:00-20:00
+            </span>
+            <span className="flex items-center gap-3">
+              <Clock className="size-5" />
+              Sábado 10:00-18:00, domingo fechado
             </span>
             <span className="flex items-center gap-3">
               <Mail className="size-5" />

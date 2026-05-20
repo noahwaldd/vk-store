@@ -24,7 +24,7 @@ export function ProductDetailActions({ product }: ProductDetailActionsProps) {
       return undefined;
     }
 
-    return `${firstVariation.label}: ${selectedVariation}`;
+    return selectedVariation;
   }, [firstVariation, selectedVariation]);
 
   function handleAdd() {
@@ -43,16 +43,28 @@ export function ProductDetailActions({ product }: ProductDetailActionsProps) {
                 key={value}
                 type="button"
                 variant={selectedVariation === value ? "secondary" : "outline"}
+                disabled={product.stock <= 0}
+                className={`btn-variant ${
+                  selectedVariation === value ? "selected" : ""
+                } ${product.stock <= 0 ? "btn-variant-no-stock" : ""}`}
                 onClick={() => setSelectedVariation(value)}
+                title={value}
               >
-                {value}
+                <span className="btn-variant-content" data-name={value}>
+                  {value}
+                </span>
               </Button>
             ))}
           </div>
         </div>
       ) : null}
 
-      <Button size="lg" onClick={handleAdd} disabled={product.stock <= 0}>
+      <Button
+        size="lg"
+        onClick={handleAdd}
+        disabled={product.stock <= 0}
+        className="add-cart-cta"
+      >
         <ShoppingCart />
         Adicionar ao carrinho
       </Button>

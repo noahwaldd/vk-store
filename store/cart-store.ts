@@ -11,7 +11,10 @@ type CartProduct = CartItem["product"];
 
 type CartState = {
   items: CartItem[];
+  couponCode: string | null;
   addItem: (product: Product | CartProduct, variation?: string) => void;
+  applyCoupon: (code: string) => void;
+  clearCoupon: () => void;
   removeItem: (productId: string, variation?: string) => void;
   updateQuantity: (productId: string, quantity: number, variation?: string) => void;
   clearCart: () => void;
@@ -23,10 +26,24 @@ function itemKey(productId: string, variation?: string) {
   return `${productId}:${variation ?? "default"}`;
 }
 
+function toCartProduct(product: Product | CartProduct): CartProduct {
+  return {
+    id: product.id,
+    name: product.name,
+    slug: product.slug,
+    price: product.price,
+    stock: product.stock,
+    images: product.images,
+  };
+}
+
+let cartHydrationPromise: Promise<void> | null = null;
+
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      couponCode: null,
       addItem: (product, variation) =>
         set((state) => {
           const key = itemKey(product.id, variation);
@@ -51,14 +68,7 @@ export const useCartStore = create<CartState>()(
             items: [
               ...state.items,
               {
-                product: {
-                  id: product.id,
-                  name: product.name,
-                  slug: product.slug,
-                  price: product.price,
-                  stock: product.stock,
-                  images: product.images,
-                },
+                product: toCartProduct(product),
                 quantity: 1,
                 variation,
               },
@@ -71,6 +81,8 @@ export const useCartStore = create<CartState>()(
             (item) => itemKey(item.product.id, item.variation) !== itemKey(productId, variation),
           ),
         })),
+      applyCoupon: (code) => set({ couponCode: code }),
+      clearCoupon: () => set({ couponCode: null }),
       updateQuantity: (productId, quantity, variation) =>
         set((state) => ({
           items: state.items
@@ -84,12 +96,32 @@ export const useCartStore = create<CartState>()(
             )
             .filter((item) => item.quantity > 0),
         })),
-      clearCart: () => set({ items: [] }),
+      clearCart: () => set({ items: [], couponCode: null }),
       total: () => getCartTotal(get().items),
       count: () => getCartCount(get().items),
     }),
     {
       name: "vkstore-cart",
+      skipHydration: true,
     },
   ),
 );
+
+export function hydrateCartStore() {
+  if (useCartStore.persist.hasHydrated()) {
+    return Promise.resolve();
+  }
+
+  cartHydrationPromise ??= new Promise<void>((resolve) => {
+    const unsubscribe = useCartStore.persist.onFinishHydration(() => {
+      unsubscribe();
+      resolve();
+    });
+
+    void useCartStore.persist.rehydrate();
+  }).finally(() => {
+    cartHydrationPromise = null;
+  });
+
+  return cartHydrationPromise;
+}

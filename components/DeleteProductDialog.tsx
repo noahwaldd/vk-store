@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 
@@ -23,6 +24,7 @@ type DeleteProductDialogProps = {
 };
 
 export function DeleteProductDialog({ productName, action }: DeleteProductDialogProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   return (
@@ -54,6 +56,7 @@ export function DeleteProductDialog({ productName, action }: DeleteProductDialog
 
                 if (result.ok) {
                   toast.success(result.message);
+                  router.refresh();
                 } else {
                   toast.error(result.message);
                 }

@@ -1,12 +1,9 @@
 const marqueeItems = [
-  "Badaboom",
-  "Urban Jungle",
-  "Street drops",
-  "Skate fit",
+  "Melhores marcas",
   "VK Store",
   "Frete sob consulta",
-  "Acessórios de rua",
-  "Peças selecionadas",
+  "Perfumaria de nicho",
+  "Peças de GRIFE",
 ];
 
 export function BrandMarquee() {

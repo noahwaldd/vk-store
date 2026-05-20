@@ -3,7 +3,12 @@
 import { revalidatePath } from "next/cache";
 
 import { requireAdminUser } from "@/lib/auth";
-import { createCategory, deleteCategory, updateCategory } from "@/lib/categories";
+import {
+  createCategory,
+  deleteCategory,
+  reorderCategories,
+  updateCategory,
+} from "@/lib/categories";
 
 export type CategoryActionResult = {
   ok: boolean;
@@ -61,6 +66,29 @@ export async function deleteCategoryAction(id: string): Promise<CategoryActionRe
     revalidatePath("/admin/produtos");
 
     return { ok: true, message: "Categoria removida." };
+  } catch (error) {
+    return { ok: false, message: getErrorMessage(error) };
+  }
+}
+
+export async function reorderCategoriesAction(
+  formData: FormData,
+): Promise<CategoryActionResult> {
+  try {
+    await requireAdminUser();
+    const parsedIds = JSON.parse(String(formData.get("category_ids") ?? "[]"));
+
+    if (!Array.isArray(parsedIds) || parsedIds.some((id) => typeof id !== "string")) {
+      return { ok: false, message: "Ordem inválida." };
+    }
+
+    await reorderCategories(parsedIds);
+    revalidatePath("/");
+    revalidatePath("/produtos");
+    revalidatePath("/admin/categorias");
+    revalidatePath("/admin/produtos");
+
+    return { ok: true, message: "Ordem das categorias atualizada." };
   } catch (error) {
     return { ok: false, message: getErrorMessage(error) };
   }

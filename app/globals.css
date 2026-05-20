@@ -186,24 +186,217 @@ textarea {
   transform: translateY(-2px);
 }
 
-@keyframes whatsapp-wiggle {
+@keyframes whatsapp-pulse {
   0%,
   100% {
-    transform: translateY(0);
-  }
-  25% {
-    transform: translateY(-2px) rotate(-2deg);
+    box-shadow: 0 0 0 0 rgb(37 211 102 / 42%), 0 14px 30px rgb(0 0 0 / 22%);
+    transform: scale(1);
   }
   50% {
-    transform: translateY(2px) rotate(2deg);
-  }
-  75% {
-    transform: translateY(-1px) rotate(-1deg);
+    box-shadow: 0 0 0 12px rgb(37 211 102 / 0%), 0 14px 30px rgb(0 0 0 / 22%);
+    transform: scale(1.06);
   }
 }
 
-.whatsapp-wiggle {
-  animation: whatsapp-wiggle 2s ease-in-out infinite;
+.whatsapp-pulse {
+  animation: whatsapp-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes cart-icon-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--street-lime) 42%, transparent);
+    transform: translateY(0) scale(1);
+  }
+  45% {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--street-lime) 0%, transparent);
+    transform: translateY(-1px) scale(1.05);
+  }
+}
+
+@keyframes cta-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--street-lime) 34%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--street-lime) 0%, transparent);
+  }
+}
+
+@keyframes checkout-cta-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 color-mix(in srgb, var(--street-lime) 46%, transparent),
+      0 0 0 0 color-mix(in srgb, var(--foreground) 0%, transparent);
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow:
+      0 0 0 10px color-mix(in srgb, var(--street-lime) 0%, transparent),
+      0 0 0 2px color-mix(in srgb, var(--foreground) 100%, transparent);
+    filter: brightness(1.04);
+  }
+}
+
+@keyframes offer-shine {
+  0% {
+    background-position: 120% 50%;
+  }
+  100% {
+    background-position: -20% 50%;
+  }
+}
+
+@keyframes coupon-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 color-mix(in srgb, var(--street-lime) 46%, transparent),
+      4px 4px 0 var(--foreground);
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    box-shadow:
+      0 0 0 12px color-mix(in srgb, var(--street-lime) 0%, transparent),
+      4px 4px 0 var(--foreground);
+    transform: translateY(-2px) scale(1.04);
+  }
+}
+
+@keyframes cart-drawer-in {
+  from {
+    opacity: 0.92;
+    transform: translateX(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.cart-icon-pulse {
+  animation: cart-icon-pulse 2.2s ease-in-out infinite;
+}
+
+.add-cart-cta:not(:disabled) {
+  animation: cta-pulse 2.6s ease-in-out infinite;
+}
+
+.checkout-cta:not(:disabled) {
+  border: 2px solid var(--foreground);
+  background: var(--street-lime);
+  color: var(--foreground);
+  animation: checkout-cta-pulse 1.9s ease-in-out infinite;
+}
+
+.checkout-cta:not(:disabled):hover {
+  background: color-mix(in srgb, var(--street-lime) 82%, white);
+  color: var(--foreground);
+}
+
+.offer-badge {
+  border: 2px solid var(--foreground) !important;
+  background: linear-gradient(
+    110deg,
+    var(--foreground) 0%,
+    var(--foreground) 42%,
+    color-mix(in srgb, var(--street-lime) 42%, var(--foreground)) 50%,
+    var(--foreground) 58%,
+    var(--foreground) 100%
+  );
+  background-size: 240% 100%;
+  color: var(--background) !important;
+  font-weight: 1000;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  box-shadow: 2px 2px 0 var(--street-lime);
+  animation: offer-shine 3.2s ease-in-out infinite;
+}
+
+.icon-inline {
+  border: 2px solid var(--foreground);
+  background: color-mix(in srgb, var(--background) 94%, transparent);
+  color: var(--foreground);
+  box-shadow: 3px 3px 0 var(--foreground);
+  backdrop-filter: blur(8px);
+}
+
+.icon-inline:hover {
+  background: var(--street-lime);
+  color: var(--foreground);
+}
+
+.coupon-floating-button {
+  position: fixed;
+  left: 1rem;
+  bottom: 6rem;
+  z-index: 45;
+  width: 3.25rem;
+  height: 3.25rem;
+  border: 2px solid var(--foreground);
+  background: var(--street-lime);
+  color: var(--foreground);
+  animation: coupon-pulse 2.2s ease-in-out infinite;
+}
+
+.cart-drawer-content[data-state="open"] {
+  animation: cart-drawer-in 180ms ease-out;
+}
+
+.btn-variant {
+  min-width: 2.75rem;
+  position: relative;
+}
+
+.btn-variant.selected {
+  border-color: var(--foreground);
+  background: var(--street-lime);
+  color: var(--foreground);
+}
+
+.btn-variant-no-stock {
+  overflow: hidden;
+  color: var(--muted-foreground);
+}
+
+.btn-variant-no-stock::after {
+  content: "";
+  position: absolute;
+  left: 10%;
+  top: 50%;
+  width: 80%;
+  height: 2px;
+  background: var(--destructive);
+  transform: rotate(-18deg);
+}
+
+.drag-sort-item {
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.drag-sort-item[data-dragging="true"] {
+  border-color: var(--foreground);
+  box-shadow: 6px 6px 0 var(--street-lime);
+  opacity: 0.72;
+  transform: scale(0.99);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .whatsapp-pulse,
+  .cart-icon-pulse,
+  .add-cart-cta,
+  .checkout-cta,
+  .coupon-floating-button,
+  .cart-drawer-content,
+  .offer-badge {
+    animation: none !important;
+  }
 }
 
 .hero-motion-mark {

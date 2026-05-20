@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Edit, RotateCcw, SlidersHorizontal } from "lucide-react";
 import { toast } from "sonner";
 
@@ -40,6 +41,7 @@ export function AdminProductsClient({
   deleteAction,
   restoreAction,
 }: AdminProductsClientProps) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [categoryId, setCategoryId] = useState("all");
   const [status, setStatus] = useState<StatusFilter>("all");
@@ -159,6 +161,7 @@ export function AdminProductsClient({
 
       if (result.ok) {
         toast.success(result.message);
+        router.refresh();
       } else {
         toast.error(result.message);
       }

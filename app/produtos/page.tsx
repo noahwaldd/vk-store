@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { ProductCatalog } from "@/components/ProductCatalog";
-import { getCategories, getProducts } from "@/lib/products";
+import { getCategories, getProductsPage, type ProductSort } from "@/lib/products";
 
 export const metadata: Metadata = {
   title: "Produtos",
@@ -12,12 +12,27 @@ type ProductsPageProps = {
   searchParams: Promise<{
     q?: string;
     categoria?: string;
+    ordenar?: ProductSort;
+    page?: string;
   }>;
 };
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   const params = await searchParams;
-  const [products, categories] = await Promise.all([getProducts(), getCategories()]);
+  const page = Number(params.page ?? "1");
+  const sort = params.ordenar ?? "recent";
+  const category = params.categoria ?? "todos";
+  const query = params.q ?? "";
+  const [productPage, categories] = await Promise.all([
+    getProductsPage({
+      page: Number.isInteger(page) ? page : 1,
+      limit: 12,
+      query,
+      category,
+      sort,
+    }),
+    getCategories(),
+  ]);
 
   return (
     <div className="container-shell py-10">
@@ -30,10 +45,11 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       </div>
 
       <ProductCatalog
-        products={products}
+        productPage={productPage}
         categories={categories}
-        initialQuery={params.q ?? ""}
-        initialCategory={params.categoria ?? "todos"}
+        query={query}
+        category={category}
+        sort={sort}
       />
     </div>
   );

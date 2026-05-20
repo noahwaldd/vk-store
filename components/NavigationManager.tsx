@@ -3,9 +3,10 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Save, Trash2 } from "lucide-react";
+import { Save } from "lucide-react";
 
 import type { NavigationActionResult } from "@/app/admin/navegacao/actions";
+import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,7 +21,7 @@ type NavigationManagerProps = {
 
 const locations: { value: NavigationLocation; label: string }[] = [
   { value: "primary", label: "Menu principal" },
-  { value: "secondary", label: "Barra preta" },
+  { value: "secondary", label: "Menu auxiliar" },
   { value: "footer", label: "Rodapé" },
 ];
 
@@ -70,10 +71,10 @@ export function NavigationManager({
     <div className="grid gap-6">
       <form
         action={(formData) => runAction(() => createAction(formData))}
-        className="grid gap-4 border-2 border-foreground bg-background p-5"
+        className="grid gap-4 border-2 border-foreground bg-background p-4"
       >
         <div>
-          <h2 className="font-display text-3xl uppercase leading-none">Novo link</h2>
+          <h2 className="font-display text-2xl uppercase leading-none">Novo link</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Controle o que aparece em Produtos, Roupas, Perfumes, Acessórios e rodapé.
           </p>
@@ -113,7 +114,7 @@ export function NavigationManager({
           <form
             key={item.id}
             action={(formData) => runAction(() => updateAction(item.id, formData))}
-            className="grid gap-4 border-2 border-border bg-background p-5"
+            className="grid gap-3 border-2 border-border bg-background p-4"
           >
             <div className="grid gap-4 md:grid-cols-[1fr_1.4fr_180px_120px_auto] md:items-end">
               <div className="grid gap-2">
@@ -131,12 +132,20 @@ export function NavigationManager({
                   id={`nav-href-${item.id}`}
                   name="href"
                   defaultValue={item.href}
+                  readOnly={item.protected}
                   required
                 />
               </div>
               <div className="grid gap-2">
                 <Label>Local</Label>
-                <LocationSelect defaultValue={item.location} />
+                {item.protected ? (
+                  <>
+                    <input type="hidden" name="location" value={item.location} />
+                    <Input value="Protegido" readOnly />
+                  </>
+                ) : (
+                  <LocationSelect defaultValue={item.location} />
+                )}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor={`nav-position-${item.id}`}>Ordem</Label>
@@ -158,23 +167,23 @@ export function NavigationManager({
                   name="enabled"
                   type="checkbox"
                   defaultChecked={item.enabled}
+                  disabled={item.protected}
                   className="size-4 accent-primary"
                 />
+                {item.protected ? <input type="hidden" name="enabled" value="on" /> : null}
+                {item.protected ? (
+                  <span className="text-xs uppercase text-muted-foreground">
+                    Protegido
+                  </span>
+                ) : null}
                 Visível no site
               </label>
-              <Button
-                type="button"
-                variant="destructive"
-                disabled={isPending}
-                onClick={() => {
-                  if (window.confirm(`Remover o link ${item.label}?`)) {
-                    runAction(() => deleteAction(item.id));
-                  }
-                }}
-              >
-                <Trash2 />
-                Remover
-              </Button>
+              <ConfirmDeleteButton
+                title="Remover link?"
+                description={`O link "${item.label}" deixará de aparecer no menu ou rodapé.`}
+                disabled={isPending || item.protected}
+                onConfirm={() => runAction(() => deleteAction(item.id))}
+              />
             </div>
           </form>
         ))}

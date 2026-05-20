@@ -7,6 +7,7 @@ export type NavigationItem = {
   location: NavigationLocation;
   position: number;
   enabled: boolean;
+  protected?: boolean;
   created_at?: string;
   updated_at?: string;
 };

@@ -1,5 +1,5 @@
-import { Loading } from "@/components/Loading";
+import { HomePageSkeleton } from "@/components/PageSkeletons";
 
 export default function AppLoading() {
-  return <Loading />;
+  return <HomePageSkeleton />;
 }

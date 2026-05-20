@@ -3,12 +3,16 @@ export type Category = {
   name: string;
   slug: string;
   description?: string | null;
+  image_url?: string | null;
+  image_key?: string | null;
+  position: number;
 };
 
 export type ProductImage = {
   id: string;
   product_id: string;
   url: string;
+  key?: string | null;
   alt?: string | null;
   position: number;
 };
@@ -45,5 +49,4 @@ export type ProductInput = {
   stock: number;
   variations?: ProductVariation[];
   featured?: boolean;
-  image_url?: string;
 };

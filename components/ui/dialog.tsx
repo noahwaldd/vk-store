@@ -48,7 +48,7 @@ function DialogContent({
       >
         {children}
         {showCloseButton ? (
-          <DialogPrimitive.Close className="focus-ring absolute right-4 top-4 rounded-md opacity-70 transition-opacity hover:opacity-100">
+          <DialogPrimitive.Close className="focus-ring absolute right-3 top-3 grid size-11 place-items-center rounded-md opacity-70 transition-opacity hover:opacity-100">
             <X className="size-4" />
             <span className="sr-only">Fechar</span>
           </DialogPrimitive.Close>
