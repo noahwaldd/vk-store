@@ -276,6 +276,72 @@ textarea {
   }
 }
 
+@keyframes coupon-sheet-mobile-in {
+  from {
+    opacity: 0.94;
+    transform: translate(-50%, 14px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+@keyframes coupon-sheet-mobile-out {
+  from {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, 14px) scale(0.985);
+  }
+}
+
+@keyframes coupon-sheet-desktop-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 12px)) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes coupon-sheet-desktop-out {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 12px)) scale(0.97);
+  }
+}
+
+@keyframes coupon-overlay-in {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(6px);
+  }
+}
+
+@keyframes coupon-overlay-out {
+  from {
+    opacity: 1;
+    backdrop-filter: blur(6px);
+  }
+  to {
+    opacity: 0;
+    backdrop-filter: blur(0);
+  }
+}
+
 .cart-icon-pulse {
   animation: cart-icon-pulse 2.2s ease-in-out infinite;
 }
@@ -365,9 +431,25 @@ textarea {
   transform: translateX(-50%);
 }
 
+.coupon-sheet-content[data-state="open"] {
+  animation: coupon-sheet-mobile-in 180ms ease-out;
+}
+
+.coupon-sheet-content[data-state="closed"] {
+  animation: coupon-sheet-mobile-out 140ms ease-in;
+}
+
 .coupon-sheet-overlay {
   background: rgb(18 16 13 / 38%);
   backdrop-filter: blur(6px);
+}
+
+.coupon-sheet-overlay[data-state="open"] {
+  animation: coupon-overlay-in 180ms ease-out;
+}
+
+.coupon-sheet-overlay[data-state="closed"] {
+  animation: coupon-overlay-out 140ms ease-in;
 }
 
 @media (width >= 768px) {
@@ -387,6 +469,14 @@ textarea {
     border-radius: 0;
     box-shadow: 12px 12px 0 var(--foreground);
     transform: translate(-50%, -50%);
+  }
+
+  .coupon-sheet-content[data-state="open"] {
+    animation-name: coupon-sheet-desktop-in;
+  }
+
+  .coupon-sheet-content[data-state="closed"] {
+    animation-name: coupon-sheet-desktop-out;
   }
 
   .coupon-sheet-grabber {
@@ -486,6 +576,8 @@ textarea {
   .add-cart-cta,
   .checkout-cta,
   .coupon-floating-button,
+  .coupon-sheet-content,
+  .coupon-sheet-overlay,
   .cart-drawer-content,
   .offer-badge {
     animation: none !important;
