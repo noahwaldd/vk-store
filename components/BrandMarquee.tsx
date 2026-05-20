@@ -1,7 +1,7 @@
 const marqueeItems = [
   "Melhores marcas",
   "VK Store",
-  "Frete sob consulta",
+  "Atendimento pelo WhatsApp",
   "Perfumaria de nicho",
   "Peças de GRIFE",
 ];

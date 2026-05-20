@@ -39,16 +39,16 @@ export default function TermsPage() {
           <p className="leading-7 text-muted-foreground">
             Ao finalizar uma compra, o cliente confirma que os dados informados
             estão corretos. O pedido é enviado pelo WhatsApp da loja, onde serão
-            confirmados retirada, disponibilidade e forma de pagamento.
+            confirmados disponibilidade, retirada e forma de pagamento.
           </p>
         </section>
 
         <section className="grid gap-3">
-          <h2 className="font-display text-3xl uppercase leading-none">Estoque e entrega</h2>
+          <h2 className="font-display text-3xl uppercase leading-none">Estoque e atendimento</h2>
           <p className="leading-7 text-muted-foreground">
             Produtos, preços e estoque podem ser atualizados. Retirada, troca e
-            devolução devem ser confirmadas pelo atendimento da loja e
-            pelas regras comerciais divulgadas ao cliente.
+            devolução devem ser confirmadas pelo atendimento da loja e pelas regras
+            comerciais divulgadas ao cliente.
           </p>
         </section>
 

@@ -38,17 +38,17 @@ export default function PrivacyPage() {
         <section className="grid gap-3">
           <h2 className="font-display text-3xl uppercase leading-none">Dados tratados</h2>
           <p className="leading-7 text-muted-foreground">
-            Podemos tratar nome, e-mail, telefone, CPF/CNPJ, endereço de entrega,
-            dados de conta, histórico de pedidos, itens do carrinho, registros de
-            acesso, preferências de cookies e informações necessárias para
-            pedidos pelo WhatsApp, entrega, atendimento e segurança.
+            Podemos tratar nome, e-mail, telefone, endereço informado, dados de conta,
+            histórico de pedidos, itens do carrinho, registros de acesso, preferências
+            de cookies e informações necessárias para pedidos pelo WhatsApp, atendimento
+            e segurança.
           </p>
         </section>
 
         <section className="grid gap-3">
           <h2 className="font-display text-3xl uppercase leading-none">Finalidades</h2>
           <ul className="grid gap-2 leading-7 text-muted-foreground">
-            <li>Processar pedidos, entregas, trocas e reembolsos.</li>
+            <li>Processar pedidos, atendimento, trocas e reembolsos.</li>
             <li>Criar e proteger a conta do cliente.</li>
             <li>Responder atendimento por e-mail, telefone ou WhatsApp.</li>
             <li>Cumprir obrigações legais, fiscais e regulatórias.</li>
@@ -72,8 +72,8 @@ export default function PrivacyPage() {
           <p className="leading-7 text-muted-foreground">
             Dados podem ser compartilhados com operadores necessários para a
             loja funcionar, como hospedagem, banco de dados, armazenamento de
-            imagens, ferramentas de autenticação, entrega, atendimento, WhatsApp
-            e autoridades quando exigido por lei.
+            imagens, ferramentas de autenticação, atendimento, WhatsApp e
+            autoridades quando exigido por lei.
           </p>
         </section>
 

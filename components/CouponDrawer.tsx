@@ -77,8 +77,9 @@ export function CouponDrawer({ coupons }: CouponDrawerProps) {
           className="coupon-floating-button"
         >
           <TicketPercent className="size-5" />
+          <span className="coupon-floating-label">Cupons</span>
           {appliedCoupon ? (
-            <span className="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full border-2 border-foreground bg-street-lime text-[10px] text-foreground">
+            <span className="coupon-floating-status absolute -right-1 -top-1 grid size-5 place-items-center rounded-full border-2 border-foreground bg-street-lime text-[10px] text-foreground">
               <Check className="size-3" />
             </span>
           ) : null}

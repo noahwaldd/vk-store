@@ -1,10 +1,12 @@
 "use server";
 
-import { checkoutSchema, type CheckoutFormValues } from "@/schemas/checkout-schema";
+import { getCurrentUser } from "@/lib/auth";
 import { createOrderFromCart } from "@/lib/checkout";
 import { findCouponByCode } from "@/lib/coupons";
+import { prisma } from "@/lib/db/prisma";
 import { buildWhatsAppOrderUrl } from "@/lib/orders/whatsapp";
 import { getCouponsSetting } from "@/lib/site-settings";
+import { checkoutSchema, type CheckoutFormValues } from "@/schemas/checkout-schema";
 import type { CartItem } from "@/types/order";
 
 export type CheckoutActionResult = {
@@ -13,6 +15,10 @@ export type CheckoutActionResult = {
   whatsappUrl?: string | null;
   orderId?: string | null;
 };
+
+function cleanOptional(value?: string) {
+  return value?.trim() || null;
+}
 
 export async function createCheckoutAction(
   values: CheckoutFormValues,
@@ -36,7 +42,10 @@ export async function createCheckoutAction(
   }
 
   try {
-    const coupons = await getCouponsSetting();
+    const [coupons, currentUser] = await Promise.all([
+      getCouponsSetting(),
+      getCurrentUser(),
+    ]);
     const coupon = findCouponByCode(coupons, couponCode);
 
     if (couponCode && !coupon) {
@@ -44,6 +53,50 @@ export async function createCheckoutAction(
         ok: false,
         message: "O cupom informado não está mais disponível.",
       };
+    }
+
+    const account = currentUser
+      ? await prisma.user.findUnique({
+          where: {
+            id: currentUser.id,
+          },
+          select: {
+            legal_accepted_at: true,
+          },
+        })
+      : null;
+    const hasAcceptedLegal = Boolean(account?.legal_accepted_at);
+
+    if (!hasAcceptedLegal && !parsed.data.acceptPrivacy) {
+      return {
+        ok: false,
+        message: "Aceite a Política de Privacidade para continuar.",
+      };
+    }
+
+    const userUpdateData = {
+      ...(hasAcceptedLegal ? {} : { legal_accepted_at: new Date() }),
+      ...(parsed.data.saveCustomerProfile
+        ? {
+            checkout_name: parsed.data.name,
+            checkout_email: parsed.data.email,
+            checkout_phone: parsed.data.phone,
+            checkout_cep: cleanOptional(parsed.data.cep),
+            checkout_address: cleanOptional(parsed.data.address),
+            checkout_number: cleanOptional(parsed.data.number),
+            checkout_city: cleanOptional(parsed.data.city),
+            checkout_state: cleanOptional(parsed.data.state),
+          }
+        : {}),
+    };
+
+    if (currentUser && Object.keys(userUpdateData).length > 0) {
+      await prisma.user.update({
+        where: {
+          id: currentUser.id,
+        },
+        data: userUpdateData,
+      });
     }
 
     const order = await createOrderFromCart({
@@ -54,7 +107,6 @@ export async function createCheckoutAction(
         name: parsed.data.name,
         email: parsed.data.email,
         phone: parsed.data.phone,
-        document: parsed.data.document,
       },
     });
 
@@ -68,7 +120,6 @@ export async function createCheckoutAction(
         name: parsed.data.name,
         email: parsed.data.email,
         phone: parsed.data.phone,
-        document: parsed.data.document,
       },
       delivery: {
         cep: parsed.data.cep,

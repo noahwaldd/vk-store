@@ -4,7 +4,7 @@ import crypto from "node:crypto";
 
 import { hashPassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/db/prisma";
-import { getSupportEmail, sendTransactionalEmail } from "@/lib/email/smtp";
+import { sendTransactionalEmail } from "@/lib/email/smtp";
 
 const PASSWORD_RESET_TTL_MS = 30 * 60 * 1000;
 
@@ -39,6 +39,22 @@ function escapeHtml(value: string) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function buildEmailSignatureHtml() {
+  const logoUrl = `${getStoreUrl()}/vk-store-white.png`;
+
+  return `
+    <p style="margin:24px 0 0;color:#111;font-size:13px;line-height:1.5;">
+      <span>Este é um e-mail automático da VK STORE.</span>
+      <br>
+      <span>
+        Por favor, não responda esta mensagem.
+        <br>
+        <img src="${escapeHtml(logoUrl)}" width="180" alt="VK STORE" style="display:block;margin-top:12px;max-width:180px;height:auto;background:#111;padding:8px;border:0;">
+      </span>
+    </p>
+  `;
 }
 
 export function buildPasswordResetUrl(token: string) {
@@ -88,31 +104,31 @@ export async function sendPasswordResetEmail({
   resetUrl: string;
 }) {
   const displayName = name?.trim() || "cliente";
-  const supportEmail = getSupportEmail();
-  const subject = "Redefinição de senha - VK Store";
+  const subject = "Redefinição de senha - VK STORE";
   const text = [
     `Olá, ${displayName}.`,
     "",
-    "Recebemos uma solicitação para redefinir sua senha na VK Store.",
+    "Recebemos uma solicitação para redefinir sua senha na VK STORE.",
     `Acesse o link abaixo para criar uma nova senha. Ele expira em 30 minutos:`,
     resetUrl,
     "",
     "Se você não solicitou essa alteração, ignore este e-mail.",
     "",
-    `Suporte: ${supportEmail}`,
+    "Este é um e-mail automático da VK STORE.",
+    "Por favor, não responda esta mensagem.",
   ].join("\n");
   const safeResetUrl = escapeHtml(resetUrl);
   const html = `
-    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111; max-width: 560px;">
       <p>Olá, ${escapeHtml(displayName)}.</p>
-      <p>Recebemos uma solicitação para redefinir sua senha na VK Store.</p>
-      <p>
-        <a href="${safeResetUrl}" style="display:inline-block;background:#111;color:#fff;padding:12px 18px;text-decoration:none;font-weight:700;">
+      <p>Recebemos uma solicitação para redefinir sua senha na VK STORE.</p>
+      <p style="margin:22px 0;">
+        <a href="${safeResetUrl}" style="display:inline-block;background:#111;color:#fff;padding:12px 18px;text-decoration:none;font-weight:700;border-radius:4px;">
           Redefinir senha
         </a>
       </p>
       <p>O link expira em 30 minutos. Se você não solicitou essa alteração, ignore este e-mail.</p>
-      <p>Suporte: <a href="mailto:${escapeHtml(supportEmail)}">${escapeHtml(supportEmail)}</a></p>
+      ${buildEmailSignatureHtml()}
     </div>
   `;
 

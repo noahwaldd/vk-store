@@ -13,7 +13,6 @@ type WhatsAppOrderInput = {
     name: string;
     email: string;
     phone: string;
-    document?: string;
   };
   delivery: {
     cep?: string;
@@ -63,7 +62,6 @@ function buildWhatsAppOrderMessage(input: WhatsAppOrderInput) {
     `Nome: ${input.customer.name}`,
     `Telefone: ${input.customer.phone}`,
     `E-mail: ${input.customer.email}`,
-    input.customer.document ? `CPF/CNPJ: ${input.customer.document}` : null,
     "",
     "Itens:",
     ...input.items.map(formatOrderItem),

@@ -85,6 +85,7 @@ export async function createAccountAction(
 
   try {
     const fullName = `${parsed.data.firstName} ${parsed.data.lastName}`;
+    const now = new Date();
 
     await prisma.user.create({
       data: {
@@ -93,6 +94,10 @@ export async function createAccountAction(
         first_name: parsed.data.firstName,
         last_name: parsed.data.lastName,
         phone: parsed.data.phone,
+        checkout_name: fullName,
+        checkout_email: parsed.data.email,
+        checkout_phone: parsed.data.phone,
+        legal_accepted_at: now,
         password_hash: await hashPassword(parsed.data.password),
         role: "user",
       },

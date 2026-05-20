@@ -173,7 +173,7 @@ export async function createOrderFromCart({
   coupons = [],
 }: {
   items: CartItem[];
-  customer: { name: string; email: string; phone: string; document?: string };
+  customer: { name: string; email: string; phone: string };
   couponCode?: string | null;
   coupons?: DiscountCoupon[];
 }) {
@@ -219,7 +219,7 @@ export async function createOrderFromCart({
         name: customer.name,
         email: customer.email,
         phone: customer.phone,
-        document: customer.document || null,
+        document: null,
       },
       select: {
         id: true,

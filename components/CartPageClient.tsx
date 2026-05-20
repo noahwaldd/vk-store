@@ -148,8 +148,8 @@ export function CartPageClient({ coupons }: CartPageClientProps) {
             </div>
           ) : null}
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Frete</span>
-            <span className="font-semibold">Calculado no atendimento</span>
+            <span className="text-muted-foreground">Atendimento</span>
+            <span className="font-semibold">Finalizado pelo WhatsApp</span>
           </div>
           <Separator />
           <div className="flex justify-between">

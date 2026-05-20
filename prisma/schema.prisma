@@ -31,12 +31,22 @@ model User {
   locked_until          DateTime? @db.Timestamptz(6)
   disabled_at           DateTime? @db.Timestamptz(6)
   last_login_at         DateTime? @db.Timestamptz(6)
+  checkout_name         String?
+  checkout_email        String?
+  checkout_phone        String?
+  checkout_cep          String?
+  checkout_address      String?
+  checkout_number       String?
+  checkout_city         String?
+  checkout_state        String?
+  legal_accepted_at     DateTime? @db.Timestamptz(6)
   created_at            DateTime  @default(now()) @db.Timestamptz(6)
   updated_at            DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
   password_reset_tokens PasswordResetToken[]
 
   @@index([role], map: "users_role_idx")
   @@index([locked_until], map: "users_locked_until_idx")
+  @@index([legal_accepted_at], map: "users_legal_accepted_at_idx")
   @@map("users")
 }
 
