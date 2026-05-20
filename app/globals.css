@@ -330,7 +330,7 @@ textarea {
 
 .coupon-floating-button {
   position: fixed;
-  right: 5.25rem;
+  left: 1.25rem;
   bottom: 1.25rem;
   z-index: 49;
   width: 3.25rem;
