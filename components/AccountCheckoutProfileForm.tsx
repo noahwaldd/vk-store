@@ -8,6 +8,7 @@ import { updateCheckoutProfileAction } from "@/app/conta/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatBrazilianPhone, onlyDigits } from "@/lib/input-format";
 import type { CheckoutProfileFormValues } from "@/schemas/checkout-profile-schema";
 
 type AccountCheckoutProfileFormProps = {
@@ -21,7 +22,10 @@ export function AccountCheckoutProfileForm({
   initialProfile,
   hasAcceptedLegal,
 }: AccountCheckoutProfileFormProps) {
-  const [values, setValues] = useState<CheckoutProfileFormValues>(initialProfile);
+  const [values, setValues] = useState<CheckoutProfileFormValues>({
+    ...initialProfile,
+    phone: formatBrazilianPhone(initialProfile.phone),
+  });
   const [cepStatus, setCepStatus] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -32,22 +36,24 @@ export function AccountCheckoutProfileForm({
     }));
   }
 
-  async function handleCepBlur() {
-    const cep = values.cep?.replace(/\D/g, "") ?? "";
+  async function resolveCep(rawCep = values.cep ?? "") {
+    const cep = onlyDigits(rawCep);
 
     if (!cep) {
       setCepStatus(null);
-      return;
+      return values;
     }
 
     if (cep.length !== 8) {
       setCepStatus("Informe 8 dígitos para buscar o CEP.");
-      return;
+      return null;
     }
+
+    const formattedCep = `${cep.slice(0, 5)}-${cep.slice(5)}`;
 
     setValues((current) => ({
       ...current,
-      cep: `${cep.slice(0, 5)}-${cep.slice(5)}`,
+      cep: formattedCep,
     }));
     setCepStatus("Buscando CEP...");
 
@@ -67,8 +73,16 @@ export function AccountCheckoutProfileForm({
 
       if (data.erro) {
         setCepStatus("CEP não encontrado. Preencha manualmente se desejar.");
-        return;
+        return null;
       }
+
+      const nextValues = {
+        ...values,
+        cep: formattedCep,
+        address: data.logradouro ?? values.address,
+        city: data.localidade ?? values.city,
+        state: data.uf ?? values.state,
+      };
 
       setValues((current) => ({
         ...current,
@@ -76,24 +90,62 @@ export function AccountCheckoutProfileForm({
         city: data.localidade ?? current.city,
         state: data.uf ?? current.state,
       }));
-      setCepStatus("Endereço preenchido pelo CEP.");
+      setCepStatus(null);
+      return nextValues;
     } catch {
       setCepStatus("Não foi possível buscar o CEP. Preencha manualmente se desejar.");
+      return null;
     }
+  }
+
+  async function handleCepBlur(event: React.FocusEvent<HTMLInputElement>) {
+    await resolveCep(event.currentTarget.value);
+  }
+
+  function handleCepKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== "Enter") {
+      return;
+    }
+
+    event.preventDefault();
+    void resolveCep(event.currentTarget.value);
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     startTransition(async () => {
-      const result = await updateCheckoutProfileAction(values);
+      let submitValues = values;
+      const cep = onlyDigits(values.cep ?? "");
+      const hasIncompleteAddress = Boolean(
+        cep && (!values.address || !values.city || !values.state),
+      );
+
+      if (cep.length === 8 && hasIncompleteAddress) {
+        const resolvedValues = await resolveCep(values.cep ?? "");
+
+        if (!resolvedValues?.address || !resolvedValues.city || !resolvedValues.state) {
+          toast.error("Complete o endereço antes de salvar o CEP.", {
+            id: "account-profile-incomplete-cep",
+          });
+          return;
+        }
+
+        submitValues = resolvedValues;
+      }
+
+      const result = await updateCheckoutProfileAction(submitValues);
 
       if (!result.ok) {
-        toast.error(result.message);
+        toast.error(result.message, {
+          id: "account-profile-save",
+        });
         return;
       }
 
-      toast.success(result.message);
+      toast.success(result.message, {
+        id: "account-profile-save",
+      });
     });
   }
 
@@ -136,8 +188,12 @@ export function AccountCheckoutProfileForm({
               type="tel"
               inputMode="tel"
               value={values.phone}
-              onChange={(event) => updateField("phone", event.target.value)}
+              onChange={(event) =>
+                updateField("phone", formatBrazilianPhone(event.target.value))
+              }
               autoComplete="tel"
+              maxLength={15}
+              placeholder="(61) 99999-9999"
               required
             />
           </div>
@@ -161,6 +217,7 @@ export function AccountCheckoutProfileForm({
               value={values.cep ?? ""}
               onChange={(event) => updateField("cep", event.target.value)}
               onBlur={handleCepBlur}
+              onKeyDown={handleCepKeyDown}
               autoComplete="postal-code"
               maxLength={9}
               placeholder="00000-000"

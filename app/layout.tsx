@@ -68,7 +68,7 @@ export default async function RootLayout({
         <FloatingActions />
         <CookieConsentBanner />
         <StorefrontMotion />
-        <Toaster richColors position="bottom-left" offset={20} />
+        <Toaster richColors position="bottom-left" offset={20} visibleToasts={3} />
       </body>
     </html>
   );

@@ -29,7 +29,9 @@ export function ProductDetailActions({ product }: ProductDetailActionsProps) {
 
   function handleAdd() {
     addItem(product, variationLabel);
-    toast.success("Produto adicionado ao carrinho.");
+    toast.success("Produto adicionado ao carrinho.", {
+      id: `cart-add-${product.id}-${variationLabel ?? "default"}`,
+    });
   }
 
   return (

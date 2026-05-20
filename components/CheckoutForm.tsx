@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { applyCouponToItems, type DiscountCoupon } from "@/lib/coupons";
+import { formatBrazilianPhone } from "@/lib/input-format";
 import { formatCurrency } from "@/lib/utils";
 import { checkoutSchema, type CheckoutFormValues } from "@/schemas/checkout-schema";
 import { useCartStore } from "@/store/cart-store";
@@ -54,7 +55,7 @@ function buildCheckoutValues({
   return {
     name: profile?.name ?? "",
     email: profile?.email ?? "",
-    phone: profile?.phone ?? "",
+    phone: formatBrazilianPhone(profile?.phone ?? ""),
     cep: profile?.cep ?? "",
     address: profile?.address ?? "",
     number: profile?.number ?? "",
@@ -167,7 +168,7 @@ export function CheckoutForm({
       setValue("address", data.logradouro ?? "", { shouldValidate: true });
       setValue("city", data.localidade ?? "", { shouldValidate: true });
       setValue("state", data.uf ?? "", { shouldValidate: true });
-      setCepStatus("Endereço preenchido pelo CEP.");
+      setCepStatus(null);
     } catch {
       setCepStatus("Não foi possível buscar o CEP. Preencha manualmente se desejar.");
     }
@@ -178,11 +179,15 @@ export function CheckoutForm({
       const result = await createCheckoutAction(values, items, couponCode);
 
       if (!result.ok) {
-        toast.error(result.message);
+        toast.error(result.message, {
+          id: "checkout-submit",
+        });
         return;
       }
 
-      toast.success(result.message);
+      toast.success(result.message, {
+        id: "checkout-submit",
+      });
       setWhatsappUrl(result.whatsappUrl ?? null);
       setOrderId(result.orderId ?? null);
 
@@ -267,7 +272,11 @@ export function CheckoutForm({
               inputMode="tel"
               autoComplete="tel"
               placeholder="(61) 99999-9999"
-              {...register("phone")}
+              {...register("phone", {
+                onChange: (event) => {
+                  event.target.value = formatBrazilianPhone(event.target.value);
+                },
+              })}
             />
             {errors.phone ? (
               <p className="text-sm text-destructive">{errors.phone.message}</p>

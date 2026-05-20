@@ -30,7 +30,9 @@ export function ProductCard({ product }: ProductCardProps) {
 
   function handleAddToCart() {
     addItem(product);
-    toast.success("Produto adicionado ao carrinho.");
+    toast.success("Produto adicionado ao carrinho.", {
+      id: `cart-add-${product.id}`,
+    });
   }
 
   return (

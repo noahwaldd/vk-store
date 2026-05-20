@@ -48,10 +48,16 @@ export function CouponDrawer({ coupons }: CouponDrawerProps) {
   }
 
   function handleApply(coupon: DiscountCoupon) {
+    if (couponCode === coupon.code) {
+      return;
+    }
+
     const result = applyCouponToItems(items, availableCoupons, coupon.code);
 
     if (!items.length) {
-      toast.error("Adicione produtos ao carrinho antes de usar um cupom.");
+      toast.error("Adicione produtos ao carrinho antes de usar um cupom.", {
+        id: "coupon-empty-cart",
+      });
       return;
     }
 
@@ -60,12 +66,17 @@ export function CouponDrawer({ coupons }: CouponDrawerProps) {
         coupon.minimumSubtotal > 0
           ? `Esse cupom vale a partir de ${formatCurrency(coupon.minimumSubtotal)}.`
           : "Esse cupom não pode ser usado neste carrinho.",
+        {
+          id: `coupon-unavailable-${coupon.id}`,
+        },
       );
       return;
     }
 
     applyCoupon(coupon.code);
-    toast.success(`Cupom ${coupon.code} aplicado.`);
+    toast.success(`Cupom ${coupon.code} aplicado.`, {
+      id: "coupon-applied",
+    });
   }
 
   return (
@@ -191,7 +202,9 @@ export function CouponDrawer({ coupons }: CouponDrawerProps) {
                     className="mt-3"
                     onClick={() => {
                       clearCoupon();
-                      toast.success("Cupom removido.");
+                      toast.success("Cupom removido.", {
+                        id: "coupon-removed",
+                      });
                     }}
                   >
                     <X />

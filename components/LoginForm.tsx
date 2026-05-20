@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createAccountAction } from "@/app/login/actions";
 import { getEmailCorrectionSuggestion } from "@/lib/auth/email-policy";
+import { formatBrazilianPhone } from "@/lib/input-format";
 
 type LoginFormProps = {
   title?: string;
@@ -58,11 +59,15 @@ export function LoginForm({
 
       if (!createResult.ok) {
         setIsLoading(false);
-        toast.error(createResult.message);
+        toast.error(createResult.message, {
+          id: "auth-submit",
+        });
         return;
       }
 
-      toast.success(createResult.message);
+      toast.success(createResult.message, {
+        id: "auth-submit",
+      });
     }
 
     const result = await signIn("credentials", {
@@ -74,11 +79,15 @@ export function LoginForm({
     setIsLoading(false);
 
     if (result?.error) {
-      toast.error("E-mail ou senha inválidos.");
+      toast.error("E-mail ou senha inválidos.", {
+        id: "auth-submit",
+      });
       return;
     }
 
-    toast.success("Login realizado com sucesso.");
+    toast.success("Login realizado com sucesso.", {
+      id: "auth-submit",
+    });
     window.location.assign(result?.url ?? redirectPath);
   }
 
@@ -183,9 +192,10 @@ export function LoginForm({
               type="tel"
               inputMode="tel"
               value={phone}
-              onChange={(event) => setPhone(event.target.value)}
-              placeholder="Celular com DDD"
+              onChange={(event) => setPhone(formatBrazilianPhone(event.target.value))}
+              placeholder="(61) 99999-9999"
               autoComplete="tel"
+              maxLength={15}
               className="h-12 rounded-none border-2 border-foreground bg-background"
               required
             />

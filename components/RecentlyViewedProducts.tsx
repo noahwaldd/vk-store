@@ -74,7 +74,9 @@ export function RecentlyViewedProducts({
 
   function handleAdd(product: RecentlyViewedProduct) {
     addItem(product);
-    toast.success("Produto adicionado ao carrinho.");
+    toast.success("Produto adicionado ao carrinho.", {
+      id: `cart-add-${product.id}`,
+    });
   }
 
   if (!visibleProducts.length) {
