@@ -46,6 +46,14 @@ export async function createCheckoutAction(
       getCouponsSetting(),
       getCurrentUser(),
     ]);
+
+    if (!currentUser) {
+      return {
+        ok: false,
+        message: "Entre na sua conta para finalizar o pedido.",
+      };
+    }
+
     const coupon = findCouponByCode(coupons, couponCode);
 
     if (couponCode && !coupon) {

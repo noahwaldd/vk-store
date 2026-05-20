@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { MapPin, Save, ShieldCheck } from "lucide-react";
+import { Save, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 import { updateCheckoutProfileAction } from "@/app/conta/actions";
@@ -26,7 +26,6 @@ export function AccountCheckoutProfileForm({
     ...initialProfile,
     phone: formatBrazilianPhone(initialProfile.phone),
   });
-  const [cepStatus, setCepStatus] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function updateField(field: CheckoutProfileField, value: string) {
@@ -40,12 +39,10 @@ export function AccountCheckoutProfileForm({
     const cep = onlyDigits(rawCep);
 
     if (!cep) {
-      setCepStatus(null);
       return values;
     }
 
     if (cep.length !== 8) {
-      setCepStatus("Informe 8 dígitos para buscar o CEP.");
       return null;
     }
 
@@ -55,8 +52,6 @@ export function AccountCheckoutProfileForm({
       ...current,
       cep: formattedCep,
     }));
-    setCepStatus("Buscando CEP...");
-
     try {
       const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
 
@@ -72,7 +67,6 @@ export function AccountCheckoutProfileForm({
       };
 
       if (data.erro) {
-        setCepStatus("CEP não encontrado. Preencha manualmente se desejar.");
         return null;
       }
 
@@ -90,10 +84,8 @@ export function AccountCheckoutProfileForm({
         city: data.localidade ?? current.city,
         state: data.uf ?? current.state,
       }));
-      setCepStatus(null);
       return nextValues;
     } catch {
-      setCepStatus("Não foi possível buscar o CEP. Preencha manualmente se desejar.");
       return null;
     }
   }
@@ -264,13 +256,6 @@ export function AccountCheckoutProfileForm({
             />
           </div>
         </div>
-
-        {cepStatus ? (
-          <p className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-            <MapPin className="size-4" />
-            {cepStatus}
-          </p>
-        ) : null}
 
         <div className="flex justify-end">
           <Button type="submit" disabled={isPending} className="rounded-none">

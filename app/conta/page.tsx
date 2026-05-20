@@ -59,7 +59,7 @@ export default async function AccountPage() {
   };
 
   return (
-    <div className="container-shell py-10">
+    <div className="container-shell py-6 lg:py-8">
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="grid gap-6">
           <section className="border-2 border-foreground bg-background p-6 sm:p-8">

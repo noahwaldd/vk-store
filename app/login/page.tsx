@@ -28,13 +28,13 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const loginImage = await getLoginImageSetting();
 
   return (
-    <div className="grid min-h-[calc(100vh-4rem)] bg-background md:grid-cols-2">
-      <div className="flex w-full flex-col justify-center px-6 py-12 sm:px-10 lg:px-20">
+    <div className="grid min-h-[calc(100dvh-5rem)] bg-background md:grid-cols-2">
+      <div className="flex w-full flex-col justify-center px-6 py-8 sm:px-10 lg:px-20">
         <div className="mx-auto w-full max-w-md">
           <LoginForm redirectPath={safeRedirectPath(params.next)} />
         </div>
       </div>
-      <div className="relative hidden min-h-[620px] overflow-hidden bg-foreground md:block">
+      <div className="relative hidden min-h-[420px] overflow-hidden bg-foreground md:block md:h-[calc(100dvh-10rem)] md:self-start">
         <Image
           src={loginImage.url}
           alt="VK Store"

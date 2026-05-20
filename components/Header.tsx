@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Megaphone, Search, UserRound } from "lucide-react";
 
 import { CartDrawer } from "@/components/CartDrawer";
+import { HeaderFrame } from "@/components/HeaderFrame";
 import { MobileMenu } from "@/components/MobileMenu";
 import { SignOutButton } from "@/components/SignOutButton";
 import { Button } from "@/components/ui/button";
@@ -26,16 +27,16 @@ export async function Header() {
   const accountLabel = user ? (isAdmin ? "Painel" : "Conta") : "Entrar";
 
   return (
-    <header className="sticky top-0 z-40 border-b-4 border-foreground bg-background/95 backdrop-blur">
+    <HeaderFrame>
       {promoBanner.enabled ? (
-        <div className="border-b-2 border-foreground bg-street-lime text-foreground">
+        <div className="site-promo border-b-2 border-foreground bg-street-lime text-foreground">
           <div className="container-shell flex min-h-10 items-center justify-center gap-2 py-2 text-center text-xs font-black uppercase sm:text-sm">
             <Megaphone className="size-4 shrink-0" />
             <span>{promoBanner.message}</span>
           </div>
         </div>
       ) : null}
-      <div className="container-shell flex min-h-16 items-center gap-2 py-2 sm:min-h-20 sm:gap-3 lg:min-h-28 lg:gap-4 lg:py-4">
+      <div className="site-header-inner container-shell flex min-h-16 items-center gap-2 py-2 sm:min-h-20 sm:gap-3 lg:min-h-28 lg:gap-4 lg:py-4">
         <MobileMenu
           items={mobileItems}
           accountHref={accountHref}
@@ -49,9 +50,9 @@ export async function Header() {
             alt="VK Store"
             width={72}
             height={72}
-            className="size-11 bg-foreground object-contain sm:size-14 lg:size-[72px]"
+            className="site-logo-mark size-11 bg-foreground object-contain sm:size-14 lg:size-[72px]"
           />
-          <span className="hidden font-graffiti text-4xl tracking-wide md:inline lg:text-5xl">
+          <span className="site-logo-text hidden font-graffiti text-4xl tracking-wide md:inline lg:text-5xl">
             VK Store
           </span>
         </Link>
@@ -62,7 +63,7 @@ export async function Header() {
             name="q"
             type="search"
             placeholder="Buscar camisetas, perfumes, acessórios..."
-            className="h-14 pl-12 text-lg"
+            className="site-header-search h-14 pl-12 text-lg"
           />
         </form>
 
@@ -120,6 +121,6 @@ export async function Header() {
         </Button>
         <CartDrawer coupons={coupons} />
       </div>
-    </header>
+    </HeaderFrame>
   );
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
@@ -10,9 +9,10 @@ import { RecentlyViewedProducts } from "@/components/RecentlyViewedProducts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { useCartAvailabilitySync } from "@/components/useCartAvailabilitySync";
 import { applyCouponToItems, type DiscountCoupon } from "@/lib/coupons";
 import { formatCurrency } from "@/lib/utils";
-import { hydrateCartStore, useCartStore } from "@/store/cart-store";
+import { useCartStore } from "@/store/cart-store";
 
 type CartPageClientProps = {
   coupons: DiscountCoupon[];
@@ -21,15 +21,18 @@ type CartPageClientProps = {
 export function CartPageClient({ coupons }: CartPageClientProps) {
   const items = useCartStore((state) => state.items);
   const couponCode = useCartStore((state) => state.couponCode);
-  const total = useCartStore((state) => state.total());
   const removeItem = useCartStore((state) => state.removeItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
-  const appliedCoupon = applyCouponToItems(items, coupons, couponCode);
-  const finalTotal = appliedCoupon?.total ?? total;
+  const availableItems = items.filter((item) => item.product.stock > 0);
+  const hasUnavailableItems = availableItems.length !== items.length;
+  const availableTotal = availableItems.reduce(
+    (sum, item) => sum + item.product.price * item.quantity,
+    0,
+  );
+  const appliedCoupon = applyCouponToItems(availableItems, coupons, couponCode);
+  const finalTotal = appliedCoupon?.total ?? availableTotal;
 
-  useEffect(() => {
-    void hydrateCartStore();
-  }, []);
+  useCartAvailabilitySync();
 
   if (!items.length) {
     return (
@@ -53,10 +56,15 @@ export function CartPageClient({ coupons }: CartPageClientProps) {
       <div className="grid gap-4">
         {items.map((item) => {
           const image = item.product.images[0]?.url;
+          const isUnavailable = item.product.stock <= 0;
 
           return (
             <Card key={`${item.product.id}-${item.variation ?? "default"}`}>
-              <CardContent className="grid gap-4 p-4 sm:grid-cols-[96px_1fr_auto]">
+              <CardContent
+                className={`grid gap-4 p-4 sm:grid-cols-[96px_1fr_auto] ${
+                  isUnavailable ? "cart-item-unavailable" : ""
+                }`}
+              >
                 <div className="relative aspect-square overflow-hidden rounded-none bg-muted">
                   {image ? (
                     <Image
@@ -82,6 +90,11 @@ export function CartPageClient({ coupons }: CartPageClientProps) {
                   <p className="mt-2 text-sm text-muted-foreground">
                     {formatCurrency(item.product.price)} cada
                   </p>
+                  {isUnavailable ? (
+                    <span className="mt-3 inline-flex border-2 border-destructive px-2 py-1 text-[11px] font-black uppercase text-destructive">
+                      Esgotado
+                    </span>
+                  ) : null}
                 </div>
 
                 <div className="flex items-center gap-3 sm:flex-col sm:items-end">
@@ -91,6 +104,7 @@ export function CartPageClient({ coupons }: CartPageClientProps) {
                       size="icon"
                       className="size-9"
                       aria-label="Diminuir quantidade"
+                      disabled={isUnavailable}
                       onClick={() =>
                         updateQuantity(item.product.id, item.quantity - 1, item.variation)
                       }
@@ -105,6 +119,7 @@ export function CartPageClient({ coupons }: CartPageClientProps) {
                       size="icon"
                       className="size-9"
                       aria-label="Aumentar quantidade"
+                      disabled={isUnavailable}
                       onClick={() =>
                         updateQuantity(item.product.id, item.quantity + 1, item.variation)
                       }
@@ -137,7 +152,7 @@ export function CartPageClient({ coupons }: CartPageClientProps) {
         <CardContent className="grid gap-4">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Subtotal</span>
-            <span className="font-semibold">{formatCurrency(total)}</span>
+            <span className="font-semibold">{formatCurrency(availableTotal)}</span>
           </div>
           {appliedCoupon ? (
             <div className="flex justify-between text-sm">
@@ -156,9 +171,15 @@ export function CartPageClient({ coupons }: CartPageClientProps) {
             <span className="font-semibold">Total</span>
             <span className="text-xl font-black">{formatCurrency(finalTotal)}</span>
           </div>
-          <Button asChild size="lg" className="checkout-cta">
-            <Link href="/checkout">Finalizar pedido</Link>
-          </Button>
+          {hasUnavailableItems ? (
+            <div className="border-2 border-destructive bg-destructive/10 p-3 text-xs font-bold text-destructive">
+              Remova itens esgotados para finalizar.
+            </div>
+          ) : (
+            <Button asChild size="lg" className="checkout-cta">
+              <Link href="/checkout">Finalizar pedido</Link>
+            </Button>
+          )}
         </CardContent>
       </Card>
     </div>

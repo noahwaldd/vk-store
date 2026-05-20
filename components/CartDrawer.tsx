@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect } from "react";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 
 import { RecentlyViewedProducts } from "@/components/RecentlyViewedProducts";
@@ -18,9 +17,10 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
+import { useCartAvailabilitySync } from "@/components/useCartAvailabilitySync";
 import { applyCouponToItems, type DiscountCoupon } from "@/lib/coupons";
 import { formatCurrency } from "@/lib/utils";
-import { hydrateCartStore, useCartStore } from "@/store/cart-store";
+import { useCartStore } from "@/store/cart-store";
 
 type CartDrawerProps = {
   coupons: DiscountCoupon[];
@@ -30,15 +30,18 @@ export function CartDrawer({ coupons }: CartDrawerProps) {
   const items = useCartStore((state) => state.items);
   const couponCode = useCartStore((state) => state.couponCode);
   const count = useCartStore((state) => state.count());
-  const total = useCartStore((state) => state.total());
   const removeItem = useCartStore((state) => state.removeItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
-  const appliedCoupon = applyCouponToItems(items, coupons, couponCode);
-  const finalTotal = appliedCoupon?.total ?? total;
+  const availableItems = items.filter((item) => item.product.stock > 0);
+  const hasUnavailableItems = availableItems.length !== items.length;
+  const availableTotal = availableItems.reduce(
+    (sum, item) => sum + item.product.price * item.quantity,
+    0,
+  );
+  const appliedCoupon = applyCouponToItems(availableItems, coupons, couponCode);
+  const finalTotal = appliedCoupon?.total ?? availableTotal;
 
-  useEffect(() => {
-    void hydrateCartStore();
-  }, []);
+  useCartAvailabilitySync();
 
   return (
     <Sheet>
@@ -75,11 +78,14 @@ export function CartDrawer({ coupons }: CartDrawerProps) {
             <div className="grid gap-4">
               {items.map((item) => {
                 const image = item.product.images[0]?.url;
+                const isUnavailable = item.product.stock <= 0;
 
                 return (
                   <div
                     key={`${item.product.id}-${item.variation ?? "default"}`}
-                    className="grid grid-cols-[72px_1fr] gap-3"
+                    className={`grid grid-cols-[72px_1fr] gap-3 ${
+                      isUnavailable ? "cart-item-unavailable" : ""
+                    }`}
                   >
                     <div className="relative aspect-square overflow-hidden rounded-none bg-muted">
                       {image ? (
@@ -102,6 +108,11 @@ export function CartDrawer({ coupons }: CartDrawerProps) {
                       {item.variation ? (
                         <p className="mt-1 text-xs text-muted-foreground">{item.variation}</p>
                       ) : null}
+                      {isUnavailable ? (
+                        <span className="mt-2 inline-flex border-2 border-destructive px-2 py-1 text-[11px] font-black uppercase text-destructive">
+                          Esgotado
+                        </span>
+                      ) : null}
                       <div className="mt-2 flex items-center justify-between gap-2">
                         <div className="flex items-center rounded-none border-2 border-border">
                           <Button
@@ -109,6 +120,7 @@ export function CartDrawer({ coupons }: CartDrawerProps) {
                             size="icon"
                             className="size-8"
                             aria-label="Diminuir quantidade"
+                            disabled={isUnavailable}
                             onClick={() =>
                               updateQuantity(
                                 item.product.id,
@@ -127,6 +139,7 @@ export function CartDrawer({ coupons }: CartDrawerProps) {
                             size="icon"
                             className="size-8"
                             aria-label="Aumentar quantidade"
+                            disabled={isUnavailable}
                             onClick={() =>
                               updateQuantity(
                                 item.product.id,
@@ -148,7 +161,9 @@ export function CartDrawer({ coupons }: CartDrawerProps) {
                         </Button>
                       </div>
                       <p className="mt-2 text-sm font-bold">
-                        {formatCurrency(item.product.price * item.quantity)}
+                        {isUnavailable
+                          ? "Fora do total"
+                          : formatCurrency(item.product.price * item.quantity)}
                       </p>
                     </div>
                   </div>
@@ -162,7 +177,7 @@ export function CartDrawer({ coupons }: CartDrawerProps) {
           <Separator />
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Subtotal</span>
-            <span className="text-lg font-black">{formatCurrency(total)}</span>
+            <span className="text-lg font-black">{formatCurrency(availableTotal)}</span>
           </div>
           {appliedCoupon ? (
             <div className="flex items-center justify-between text-sm text-primary">
@@ -174,7 +189,12 @@ export function CartDrawer({ coupons }: CartDrawerProps) {
             <span className="font-semibold">Total</span>
             <span className="text-lg font-black">{formatCurrency(finalTotal)}</span>
           </div>
-          {items.length > 0 ? (
+          {hasUnavailableItems ? (
+            <div className="border-2 border-destructive bg-destructive/10 p-3 text-xs font-bold text-destructive">
+              Remova itens esgotados para finalizar.
+            </div>
+          ) : null}
+          {items.length > 0 && !hasUnavailableItems ? (
             <SheetClose asChild>
               <Button asChild size="lg" className="checkout-cta">
                 <Link href="/checkout">Finalizar pedido</Link>

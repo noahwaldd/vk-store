@@ -21,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { useCartAvailabilitySync } from "@/components/useCartAvailabilitySync";
 import { applyCouponToItems, type DiscountCoupon } from "@/lib/coupons";
 import { formatBrazilianPhone } from "@/lib/input-format";
 import { formatCurrency } from "@/lib/utils";
@@ -74,10 +75,8 @@ export function CheckoutForm({
 }: CheckoutFormProps) {
   const items = useCartStore((state) => state.items);
   const couponCode = useCartStore((state) => state.couponCode);
-  const total = useCartStore((state) => state.total());
   const clearCart = useCartStore((state) => state.clearCart);
   const [isPending, startTransition] = useTransition();
-  const [cepStatus, setCepStatus] = useState<string | null>(null);
   const [whatsappUrl, setWhatsappUrl] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
   const savedProfileAvailable = hasProfileData(savedProfile);
@@ -98,8 +97,16 @@ export function CheckoutForm({
       isAuthenticated,
     }),
   });
-  const appliedCoupon = applyCouponToItems(items, coupons, couponCode);
-  const finalTotal = appliedCoupon?.total ?? total;
+  const availableItems = items.filter((item) => item.product.stock > 0);
+  const hasUnavailableItems = availableItems.length !== items.length;
+  const availableTotal = availableItems.reduce(
+    (sum, item) => sum + item.product.price * item.quantity,
+    0,
+  );
+  const appliedCoupon = applyCouponToItems(availableItems, coupons, couponCode);
+  const finalTotal = appliedCoupon?.total ?? availableTotal;
+
+  useCartAvailabilitySync();
 
   function applySavedProfile() {
     if (!savedProfile) {
@@ -118,7 +125,6 @@ export function CheckoutForm({
 
   function useCustomProfile() {
     setProfileMode("custom");
-    setCepStatus(null);
     reset(
       buildCheckoutValues({
         profile: null,
@@ -132,20 +138,16 @@ export function CheckoutForm({
     const cep = event.target.value.replace(/\D/g, "");
 
     if (!cep) {
-      setCepStatus(null);
       return;
     }
 
     if (cep.length !== 8) {
-      setCepStatus("Informe 8 dígitos para buscar o CEP.");
       return;
     }
 
     setValue("cep", `${cep.slice(0, 5)}-${cep.slice(5)}`, {
       shouldValidate: true,
     });
-    setCepStatus("Buscando CEP...");
-
     try {
       const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
 
@@ -161,20 +163,23 @@ export function CheckoutForm({
       };
 
       if (data.erro) {
-        setCepStatus("CEP não encontrado. Preencha manualmente se desejar.");
         return;
       }
 
       setValue("address", data.logradouro ?? "", { shouldValidate: true });
       setValue("city", data.localidade ?? "", { shouldValidate: true });
       setValue("state", data.uf ?? "", { shouldValidate: true });
-      setCepStatus(null);
-    } catch {
-      setCepStatus("Não foi possível buscar o CEP. Preencha manualmente se desejar.");
-    }
+    } catch {}
   }
 
   const onSubmit = handleSubmit((values) => {
+    if (hasUnavailableItems) {
+      toast.error("Remova itens esgotados antes de finalizar.", {
+        id: "checkout-unavailable-items",
+      });
+      return;
+    }
+
     startTransition(async () => {
       const result = await createCheckoutAction(values, items, couponCode);
 
@@ -322,9 +327,6 @@ export function CheckoutForm({
             {errors.cep ? (
               <p className="text-sm text-destructive">{errors.cep.message}</p>
             ) : null}
-            {cepStatus ? (
-              <p className="text-xs font-semibold text-muted-foreground">{cepStatus}</p>
-            ) : null}
           </div>
           <div className="grid gap-2 md:col-span-2">
             <Label htmlFor="address">Endereço</Label>
@@ -412,7 +414,7 @@ export function CheckoutForm({
           <Button
             type="submit"
             size="lg"
-            disabled={isPending}
+            disabled={isPending || hasUnavailableItems}
             className="checkout-cta h-auto min-h-12 whitespace-normal py-3 text-center leading-tight sm:whitespace-nowrap"
           >
             <MessageCircle className="size-4" />
@@ -441,11 +443,14 @@ export function CheckoutForm({
         <CardContent className="grid gap-4">
           {items.map((item) => {
             const image = item.product.images[0]?.url;
+            const isUnavailable = item.product.stock <= 0;
 
             return (
               <div
                 key={`${item.product.id}-${item.variation ?? "default"}`}
-                className="grid grid-cols-[64px_1fr_auto] gap-3"
+                className={`grid grid-cols-[64px_1fr_auto] gap-3 ${
+                  isUnavailable ? "cart-item-unavailable p-2" : ""
+                }`}
               >
                 <div className="relative aspect-square overflow-hidden rounded-none bg-muted">
                   {image ? (
@@ -461,9 +466,16 @@ export function CheckoutForm({
                 <div className="min-w-0">
                   <p className="line-clamp-2 text-sm font-semibold">{item.product.name}</p>
                   <p className="text-xs text-muted-foreground">Qtd. {item.quantity}</p>
+                  {isUnavailable ? (
+                    <span className="mt-1 inline-flex border-2 border-destructive px-2 py-0.5 text-[10px] font-black uppercase text-destructive">
+                      Esgotado
+                    </span>
+                  ) : null}
                 </div>
                 <p className="text-sm font-bold">
-                  {formatCurrency(item.product.price * item.quantity)}
+                  {isUnavailable
+                    ? "Fora do total"
+                    : formatCurrency(item.product.price * item.quantity)}
                 </p>
               </div>
             );

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 import { CheckoutForm } from "@/components/CheckoutForm";
 import { getCurrentUser } from "@/lib/auth";
@@ -11,32 +12,36 @@ export const metadata: Metadata = {
 };
 
 export default async function CheckoutPage() {
-  const [coupons, user] = await Promise.all([getCouponsSetting(), getCurrentUser()]);
-  const profile = user
-    ? await prisma.user.findUnique({
-        where: {
-          id: user.id,
-        },
-        select: {
-          name: true,
-          email: true,
-          phone: true,
-          checkout_name: true,
-          checkout_email: true,
-          checkout_phone: true,
-          checkout_cep: true,
-          checkout_address: true,
-          checkout_number: true,
-          checkout_city: true,
-          checkout_state: true,
-          legal_accepted_at: true,
-        },
-      })
-    : null;
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/login?next=/checkout");
+  }
+
+  const coupons = await getCouponsSetting();
+  const profile = await prisma.user.findUnique({
+    where: {
+      id: user.id,
+    },
+    select: {
+      name: true,
+      email: true,
+      phone: true,
+      checkout_name: true,
+      checkout_email: true,
+      checkout_phone: true,
+      checkout_cep: true,
+      checkout_address: true,
+      checkout_number: true,
+      checkout_city: true,
+      checkout_state: true,
+      legal_accepted_at: true,
+    },
+  });
   const checkoutProfile = profile
     ? {
-        name: profile.checkout_name ?? profile.name ?? user?.name ?? "",
-        email: profile.checkout_email ?? profile.email ?? user?.email ?? "",
+        name: profile.checkout_name ?? profile.name ?? user.name ?? "",
+        email: profile.checkout_email ?? profile.email ?? user.email ?? "",
         phone: profile.checkout_phone ?? profile.phone ?? "",
         cep: profile.checkout_cep ?? "",
         address: profile.checkout_address ?? "",

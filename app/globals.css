@@ -130,6 +130,99 @@ textarea {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 35%, transparent);
 }
 
+.site-header {
+  transition:
+    border-width 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+}
+
+.site-header[data-scrolled="true"] {
+  border-bottom-width: 2px;
+  box-shadow: 0 12px 26px rgb(0 0 0 / 10%);
+}
+
+.site-header-inner,
+.site-promo,
+.site-promo > div,
+.site-logo-mark,
+.site-logo-text,
+.site-header-search {
+  transition:
+    min-height 180ms ease,
+    padding 180ms ease,
+    width 180ms ease,
+    height 180ms ease,
+    font-size 180ms ease,
+    opacity 180ms ease,
+    max-height 180ms ease,
+    transform 180ms ease;
+}
+
+.site-promo {
+  max-height: 4rem;
+  overflow: hidden;
+}
+
+.site-header[data-scrolled="true"] .site-header-inner {
+  min-height: 3.5rem;
+  padding-block: 0.35rem;
+}
+
+.site-header[data-scrolled="true"] .site-promo {
+  transform: translateY(-100%);
+  max-height: 0;
+  min-height: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.site-header[data-scrolled="true"] .site-promo > div {
+  min-height: 0;
+  padding-block: 0;
+}
+
+.site-header[data-scrolled="true"] .site-logo-mark {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.site-header[data-scrolled="true"] .site-logo-text {
+  font-size: 2.25rem;
+}
+
+.site-header[data-scrolled="true"] .site-header-search {
+  height: 2.75rem;
+  font-size: 0.95rem;
+}
+
+@media (width >= 640px) {
+  .site-header[data-scrolled="true"] .site-header-inner {
+    min-height: 4rem;
+  }
+
+  .site-header[data-scrolled="true"] .site-logo-mark {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+}
+
+@media (width >= 1024px) {
+  .site-header[data-scrolled="true"] .site-header-inner {
+    min-height: 4.5rem;
+    padding-block: 0.5rem;
+  }
+
+  .site-header[data-scrolled="true"] .site-logo-mark {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .site-header[data-scrolled="true"] .site-logo-text {
+    font-size: 2.75rem;
+  }
+}
+
 .marquee-track {
   animation: var(--animate-marquee);
 }
@@ -528,6 +621,23 @@ textarea {
   animation: cart-drawer-in 180ms ease-out;
 }
 
+.cart-item-unavailable {
+  border-color: color-mix(in srgb, var(--destructive) 68%, var(--border));
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      color-mix(in srgb, var(--destructive) 8%, transparent) 0 10px,
+      transparent 10px 20px
+    ),
+    color-mix(in srgb, var(--muted) 28%, var(--background));
+  filter: grayscale(0.75);
+  opacity: 0.76;
+}
+
+.cart-item-unavailable img {
+  filter: grayscale(1);
+}
+
 .btn-variant {
   min-width: 2.75rem;
   position: relative;
@@ -579,8 +689,15 @@ textarea {
   .coupon-sheet-content,
   .coupon-sheet-overlay,
   .cart-drawer-content,
+  .site-header,
+  .site-header-inner,
+  .site-promo,
+  .site-logo-mark,
+  .site-logo-text,
+  .site-header-search,
   .offer-badge {
     animation: none !important;
+    transition: none !important;
   }
 }
 

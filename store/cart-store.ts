@@ -15,6 +15,7 @@ type CartState = {
   addItem: (product: Product | CartProduct, variation?: string) => void;
   applyCoupon: (code: string) => void;
   clearCoupon: () => void;
+  replaceItems: (items: CartItem[]) => void;
   removeItem: (productId: string, variation?: string) => void;
   updateQuantity: (productId: string, quantity: number, variation?: string) => void;
   clearCart: () => void;
@@ -83,6 +84,11 @@ export const useCartStore = create<CartState>()(
         })),
       applyCoupon: (code) => set({ couponCode: code }),
       clearCoupon: () => set({ couponCode: null }),
+      replaceItems: (items) =>
+        set((state) => ({
+          items,
+          couponCode: items.length ? state.couponCode : null,
+        })),
       updateQuantity: (productId, quantity, variation) =>
         set((state) => ({
           items: state.items
