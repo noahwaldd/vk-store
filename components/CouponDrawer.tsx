@@ -87,6 +87,7 @@ export function CouponDrawer({ coupons }: CouponDrawerProps) {
       <SheetContent
         side="bottom"
         showCloseButton={false}
+        overlayClassName="coupon-sheet-overlay"
         className="coupon-sheet-content"
       >
         <div className="coupon-sheet-grabber flex flex-shrink-0 items-center justify-center pb-2 pt-5">
