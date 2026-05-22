@@ -19,7 +19,7 @@ export default async function AdminLayout({
   if (!isAdminUser(user)) {
     return (
       <div className="container-shell grid min-h-[70vh] place-items-center py-10">
-        <div className="w-full max-w-xl border-2 border-foreground bg-background p-8">
+        <div className="w-full max-w-xl border border-border bg-background p-8">
           <p className="font-display text-sm uppercase tracking-[0.2em] text-muted-foreground">
             Acesso bloqueado
           </p>
@@ -38,7 +38,7 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="container-shell grid gap-6 py-10 lg:grid-cols-[auto_minmax(0,1fr)]">
+    <div className="admin-shell container-shell grid gap-5 py-6 lg:grid-cols-[auto_minmax(0,1fr)] lg:py-8">
       <AdminSidebar />
       <div className="min-w-0">{children}</div>
     </div>

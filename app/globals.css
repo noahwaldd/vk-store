@@ -130,6 +130,26 @@ textarea {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 35%, transparent);
 }
 
+.admin-shell {
+  --admin-soft-border: color-mix(in srgb, var(--foreground) 14%, transparent);
+}
+
+.admin-sidebar {
+  box-shadow: inset -1px 0 0 color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+
+.admin-shell :where(.border-2) {
+  border-width: 1px;
+}
+
+.admin-shell :where(.border-foreground) {
+  border-color: var(--admin-soft-border);
+}
+
+.admin-shell :where([data-slot="card"], details, section) {
+  border-color: var(--admin-soft-border);
+}
+
 .scrollbar-none {
   scrollbar-width: none;
 }

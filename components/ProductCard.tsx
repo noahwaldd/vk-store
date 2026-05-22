@@ -33,7 +33,7 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <Card data-animate className="group overflow-hidden p-0">
       <Link href={`/produto/${product.slug}`} className="block">
-        <div className="relative aspect-[5/6] overflow-hidden bg-muted">
+        <div className="relative aspect-[4/5] overflow-hidden bg-muted">
           {image ? (
             <Image
               src={image}
@@ -56,8 +56,8 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
       </Link>
 
-      <div className="grid gap-3 p-3">
-        <div className="min-h-16">
+      <div className="grid gap-2.5 p-3">
+        <div className="min-h-14">
           <p className="text-xs font-semibold uppercase text-muted-foreground">
             {product.category?.name ?? "Produto"}
           </p>

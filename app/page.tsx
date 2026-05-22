@@ -92,20 +92,20 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="container-shell py-16">
-        <div className="mb-8 flex items-end justify-between gap-4 border-b-2 border-foreground pb-4">
+      <section className="container-shell py-8 md:py-10">
+        <div className="mb-5 flex flex-col items-start gap-3 border-b border-border pb-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="font-display text-lg tracking-widest text-muted-foreground">
+            <p className="font-display text-sm tracking-widest text-muted-foreground">
               Categorias
             </p>
-            <h2 className="font-display text-4xl uppercase sm:text-6xl">
+            <h2 className="font-display text-3xl uppercase sm:text-5xl">
               Compre por seção
             </h2>
           </div>
           <Button
             asChild
             variant="ghost"
-            className="rounded-none font-display text-lg uppercase tracking-wide hover:bg-foreground hover:text-background"
+            className="rounded-none font-display text-base uppercase tracking-wide hover:bg-foreground hover:text-background"
           >
             <Link href="/produtos">
               Ver tudo
@@ -117,20 +117,20 @@ export default async function HomePage() {
         <CategoryCarousel categories={categories} />
       </section>
 
-      <section className="container-shell py-16">
-        <div className="mb-8 flex items-end justify-between gap-4 border-b-2 border-foreground pb-4">
+      <section className="container-shell py-8 md:py-10">
+        <div className="mb-5 flex flex-col items-start gap-3 border-b border-border pb-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="font-display text-lg tracking-widest text-muted-foreground">
+            <p className="font-display text-sm tracking-widest text-muted-foreground">
               Destaques
             </p>
-            <h2 className="font-display text-4xl uppercase sm:text-6xl">
+            <h2 className="font-display text-3xl uppercase sm:text-4xl">
               Produtos em destaque
             </h2>
           </div>
           <Button
             asChild
             variant="outline"
-            className="rounded-none border-2 border-foreground font-display text-lg uppercase tracking-wide hover:bg-foreground hover:text-background"
+            className="rounded-none border border-border font-display text-base uppercase tracking-wide hover:bg-foreground hover:text-background"
           >
             <Link href="/produtos">Ver catálogo</Link>
           </Button>
@@ -140,7 +140,7 @@ export default async function HomePage() {
 
       <BrandMarquee />
 
-      <section className="container-shell py-16">
+      <section className="container-shell py-8 md:py-10">
         <div
           data-animate
           className="grid gap-8 rounded-none border-2 border-foreground bg-foreground p-8 text-background md:grid-cols-[1fr_auto] md:items-center md:p-12 lg:p-16"

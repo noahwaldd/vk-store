@@ -49,25 +49,25 @@ export function HomePageSkeleton() {
           </div>
         </div>
       </section>
-      <section className="container-shell py-16">
-        <div className="mb-8 flex items-end justify-between gap-4 border-b-2 border-foreground pb-4">
+      <section className="container-shell py-8 md:py-10">
+        <div className="mb-5 flex items-end justify-between gap-4 border-b border-border pb-3">
           <PageHeadingSkeleton />
           <Skeleton className="hidden h-10 w-28 rounded-none sm:block" />
         </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <Skeleton key={index} className="min-h-[320px] rounded-none" />
+        <div className="grid gap-3 md:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={index} className="min-h-[210px] rounded-none" />
           ))}
         </div>
       </section>
-      <section className="container-shell py-16">
-        <div className="mb-8 flex items-end justify-between gap-4 border-b-2 border-foreground pb-4">
+      <section className="container-shell py-8 md:py-10">
+        <div className="mb-5 flex items-end justify-between gap-4 border-b border-border pb-3">
           <PageHeadingSkeleton />
           <Skeleton className="hidden h-10 w-32 rounded-none sm:block" />
         </div>
         <ProductGridSkeleton />
       </section>
-      <section className="container-shell py-16">
+      <section className="container-shell py-8 md:py-10">
         <Skeleton className="h-64 rounded-none" />
       </section>
     </div>

@@ -1,14 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  Boxes,
-  ImageIcon,
-  Navigation,
-  PackagePlus,
-  ShoppingCart,
-  Tags,
-  Type,
-} from "lucide-react";
+import { Boxes, ImageIcon, PackagePlus, ShoppingCart, Type } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,7 +18,7 @@ export default async function AdminPage() {
   const styleReferences = [
     {
       title: "Marca",
-      text: "Mantenha o nome da loja sempre igual e evite misturar muitos estilos de letra na mesma arte.",
+      text: "Mantenha o nome da loja consistente e evite misturar muitos estilos de letra na mesma arte.",
       icon: Type,
     },
     {
@@ -42,14 +34,11 @@ export default async function AdminPage() {
   ];
 
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-bold uppercase text-primary">Admin</p>
           <h1 className="mt-2 text-3xl font-black">Painel</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Login, visão rápida e atalhos para gerenciar produtos.
-          </p>
         </div>
         <Button asChild>
           <Link href="/admin/produtos/novo">
@@ -59,7 +48,7 @@ export default async function AdminPage() {
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-3">
         {[
           { label: "Produtos ativos", value: activeProducts.length, icon: Boxes },
           { label: "Unidades em estoque", value: stockTotal, icon: ShoppingCart },
@@ -69,13 +58,13 @@ export default async function AdminPage() {
 
           return (
             <Card key={item.label}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {item.label}
                 </CardTitle>
                 <Icon className="size-4 text-muted-foreground" />
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 pt-0">
                 <p className="text-3xl font-black">{item.value}</p>
               </CardContent>
             </Card>
@@ -83,52 +72,21 @@ export default async function AdminPage() {
         })}
       </div>
 
-      <section className="grid gap-4 border-2 border-foreground bg-background p-5">
-        <div>
-          <p className="font-display text-sm uppercase tracking-[0.2em] text-muted-foreground">
-            Configuração da loja
-          </p>
-          <h2 className="mt-2 font-display text-3xl uppercase leading-none">
-            Controle o que aparece no site
-          </h2>
-        </div>
-        <div className="grid gap-3 md:grid-cols-3">
-          <Button asChild variant="outline" className="h-auto justify-start p-4">
-            <Link href="/admin/produtos/novo">
-              <PackagePlus />
-              Novo produto
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="h-auto justify-start p-4">
-            <Link href="/admin/categorias">
-              <Tags />
-              Categorias
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="h-auto justify-start p-4">
-            <Link href="/admin/navegacao">
-              <Navigation />
-              Navegação
-            </Link>
-          </Button>
-        </div>
-      </section>
-
-      <section className="grid gap-4 border-2 border-foreground bg-background p-5">
+      <section className="grid gap-4 border border-border bg-background p-4">
         <div>
           <p className="font-display text-sm uppercase tracking-[0.2em] text-muted-foreground">
             Guia visual
           </p>
-          <h2 className="mt-2 font-display text-3xl uppercase leading-none">
+          <h2 className="mt-2 font-display text-2xl uppercase leading-none sm:text-3xl">
             Dicas simples para manter a loja bonita
           </h2>
         </div>
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-3">
           {styleReferences.map((item) => {
             const Icon = item.icon;
 
             return (
-              <div key={item.title} className="border-2 border-border bg-secondary p-4">
+              <div key={item.title} className="border border-border bg-secondary/55 p-4">
                 <Icon className="size-5" />
                 <h3 className="mt-4 font-display text-2xl uppercase leading-none">
                   {item.title}
@@ -141,7 +99,6 @@ export default async function AdminPage() {
           })}
         </div>
       </section>
-
     </div>
   );
 }

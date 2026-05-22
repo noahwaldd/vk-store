@@ -38,8 +38,8 @@ export function ProductImageGallery({
   }
 
   return (
-    <div className="grid w-full max-w-[430px] gap-2 justify-self-center lg:justify-self-start">
-      <div className="relative aspect-[4/3] max-h-[430px] overflow-hidden rounded-none border-2 border-foreground bg-muted/35 lg:aspect-square">
+    <div className="grid w-full max-w-[520px] gap-2 justify-self-center lg:h-full lg:max-w-none lg:grid-rows-[minmax(0,1fr)_auto] lg:justify-self-stretch">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-none border-2 border-foreground bg-muted/35 lg:aspect-auto lg:min-h-[560px]">
         {activeImage ? (
           <button
             type="button"
@@ -52,7 +52,7 @@ export function ProductImageGallery({
               alt={activeImage.alt ?? productName}
               fill
               priority
-              sizes="(min-width: 1024px) 430px, 100vw"
+              sizes="(min-width: 1024px) 520px, 100vw"
               className="object-contain"
               unoptimized
             />
@@ -104,7 +104,7 @@ export function ProductImageGallery({
                 type="button"
                 aria-label={`Ver foto ${index + 1}`}
                 aria-pressed={selected}
-                className={`relative aspect-square w-14 shrink-0 overflow-hidden rounded-none border-2 bg-background transition-colors sm:w-16 ${
+                className={`relative aspect-square w-16 shrink-0 overflow-hidden rounded-none border-2 bg-background transition-colors sm:w-20 ${
                   selected ? "border-foreground" : "border-border hover:border-foreground"
                 }`}
                 onClick={() => setActiveIndex(index)}

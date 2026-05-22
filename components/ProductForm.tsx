@@ -28,7 +28,6 @@ import {
   Plus,
   Ruler,
   Save,
-  Search,
   Shirt,
   Trash2,
   X,
@@ -772,14 +771,12 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
               </Button>
             </div>
             <input type="hidden" {...register("category_id")} />
-            <label className="relative">
+            <label>
               <span className="sr-only">Buscar categoria</span>
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={categoryQuery}
                 onChange={(event) => setCategoryQuery(event.target.value)}
                 placeholder="Buscar categoria"
-                className="pl-9"
               />
             </label>
             {categories.length === 0 ? (
@@ -934,6 +931,7 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
             <Input
               id="image"
               type="file"
+              className="sr-only"
               accept="image/jpeg,image/png,image/webp,image/avif"
               multiple
               onChange={(event) => {
@@ -941,9 +939,19 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
                 event.target.value = "";
               }}
             />
+            <Label
+              htmlFor="image"
+              className="focus-ring inline-flex h-10 w-fit cursor-pointer items-center justify-center gap-2 border border-border bg-background px-4 text-sm font-black uppercase text-foreground transition-colors hover:bg-muted"
+            >
+              <ImagePlus className="size-4" />
+              {galleryImages.length ? "Adicionar fotos" : "Selecionar fotos"}
+            </Label>
             <p className="flex items-center gap-2 text-xs text-muted-foreground">
               <ImagePlus className="size-4" />
-              Selecione uma ou mais imagens em JPG, PNG, WebP ou AVIF, com até 5MB cada.
+              {galleryImages.length
+                ? `${galleryImages.length} foto${galleryImages.length === 1 ? "" : "s"} na galeria.`
+                : "Nenhuma foto adicionada."}{" "}
+              JPG, PNG, WebP ou AVIF, com até 5MB cada.
             </p>
           </div>
 

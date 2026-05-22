@@ -15,7 +15,7 @@ type CategoryCarouselProps = {
 export function CategoryCarousel({ categories }: CategoryCarouselProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [canScrollBack, setCanScrollBack] = useState(false);
-  const [canScrollForward, setCanScrollForward] = useState(categories.length > 1);
+  const [canScrollForward, setCanScrollForward] = useState(false);
 
   useEffect(() => {
     updateScrollState();
@@ -58,21 +58,21 @@ export function CategoryCarousel({ categories }: CategoryCarouselProps) {
       <div
         ref={trackRef}
         onScroll={updateScrollState}
-        className="scrollbar-none grid auto-cols-[minmax(220px,270px)] grid-flow-col gap-3 overflow-x-auto scroll-smooth snap-x pb-1"
+        className="scrollbar-none grid auto-cols-[minmax(220px,85vw)] grid-flow-col gap-3 overflow-x-auto scroll-smooth snap-x pb-1 sm:auto-cols-[calc((100%-0.75rem)/2)] lg:auto-cols-[calc((100%-2.25rem)/4)]"
       >
         {categories.map((category, index) => (
           <Link
             key={category.id}
             href={`/produtos?categoria=${category.slug}`}
             data-animate
-            className="group relative flex min-h-[230px] snap-start overflow-hidden border-2 border-foreground bg-foreground text-background transition-all hover:-translate-y-1 hover:shadow-[7px_7px_0_var(--street-lime)]"
+            className="group relative flex min-h-[210px] snap-start overflow-hidden border border-border bg-foreground text-background transition-all hover:-translate-y-1 hover:shadow-[6px_6px_0_var(--street-lime)]"
           >
             {category.image_url ? (
               <Image
                 src={category.image_url}
                 alt={category.name}
                 fill
-                sizes="270px"
+                sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 85vw"
                 className="object-cover opacity-80 transition duration-500 group-hover:scale-105 group-hover:opacity-95"
                 unoptimized
               />
@@ -84,7 +84,7 @@ export function CategoryCarousel({ categories }: CategoryCarouselProps) {
               <span className="w-fit border-2 border-background bg-street-lime px-2 py-1 text-[11px] font-black uppercase text-foreground">
                 Seção {index + 1}
               </span>
-              <h3 className="font-display text-3xl uppercase leading-none sm:text-4xl">
+              <h3 className="font-display text-2xl uppercase leading-none sm:text-3xl">
                 {category.name}
               </h3>
               {category.description ? (

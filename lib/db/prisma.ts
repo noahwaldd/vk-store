@@ -9,7 +9,7 @@ const globalForPrisma = globalThis as unknown as {
 const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
-  throw new Error("DATABASE_URL não configurada.");
+  throw new Error("Não configurada.");
 }
 
 const poolMax = Number.parseInt(process.env.DATABASE_POOL_MAX ?? "", 10);

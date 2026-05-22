@@ -71,10 +71,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
         </Link>
       </Button>
 
-      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,430px)_minmax(0,1fr)]">
+      <div className="grid items-stretch gap-5 lg:grid-cols-[minmax(0,520px)_minmax(0,1fr)]">
         <ProductImageGallery images={product.images} productName={product.name} />
 
-        <section className="min-w-0 rounded-none border-2 border-foreground bg-background p-4 lg:p-5">
+        <section className="min-w-0 rounded-none border-2 border-foreground bg-background p-4 lg:min-h-[640px] lg:p-5">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="muted">{product.category?.name ?? "Produto"}</Badge>
             {hasDiscount ? <Badge className="offer-badge">Oferta</Badge> : null}
