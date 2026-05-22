@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Megaphone, Search, UserRound } from "lucide-react";
+import { ChevronDown, Megaphone, Search, UserRound } from "lucide-react";
 
 import { CartDrawer } from "@/components/CartDrawer";
 import { HeaderFrame } from "@/components/HeaderFrame";
@@ -23,6 +23,13 @@ export async function Header() {
   const mobileItems = primaryItems.filter(
     (item, index, items) => items.findIndex((entry) => entry.href === item.href) === index,
   );
+  const categoryItems = primaryItems.filter((item) =>
+    item.href.startsWith("/produtos?categoria="),
+  );
+  const shouldGroupCategories = categoryItems.length > 3;
+  const desktopItems = shouldGroupCategories
+    ? primaryItems.filter((item) => !item.href.startsWith("/produtos?categoria="))
+    : primaryItems;
   const accountHref = user ? (isAdmin ? "/admin" : "/conta") : "/login?next=/conta";
   const accountLabel = user ? (isAdmin ? "Painel" : "Conta") : "Entrar";
 
@@ -67,8 +74,8 @@ export async function Header() {
           />
         </form>
 
-        <nav className="ml-auto hidden min-w-0 max-w-[min(42vw,720px)] items-center gap-1 overflow-x-auto lg:flex">
-          {primaryItems.map((item) => (
+        <nav className="ml-auto hidden min-w-0 max-w-[min(42vw,720px)] items-center gap-1 overflow-visible lg:flex">
+          {desktopItems.map((item) => (
             <Button
               key={item.href}
               asChild
@@ -79,6 +86,25 @@ export async function Header() {
               <Link href={item.href}>{item.label}</Link>
             </Button>
           ))}
+          {shouldGroupCategories ? (
+            <details className="group relative">
+              <summary className="focus-ring flex h-12 cursor-pointer list-none items-center gap-2 px-4 text-base font-semibold hover:bg-muted xl:px-5 xl:text-lg [&::-webkit-details-marker]:hidden">
+                Categorias
+                <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
+              </summary>
+              <div className="absolute right-0 top-full z-50 mt-2 grid max-h-[min(70vh,28rem)] w-[min(82vw,360px)] gap-1 overflow-y-auto border-2 border-foreground bg-background p-2 shadow-[8px_8px_0_var(--foreground)]">
+                {categoryItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="focus-ring border-2 border-transparent px-3 py-2 text-sm font-bold hover:border-foreground hover:bg-muted"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </details>
+          ) : null}
         </nav>
 
         {user ? (

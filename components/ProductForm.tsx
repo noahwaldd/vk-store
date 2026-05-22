@@ -18,17 +18,20 @@ import {
   ArrowDown,
   ArrowUp,
   ChevronDown,
+  Droplets,
   Footprints,
   GripVertical,
   ImagePlus,
   PackageCheck,
   PackageX,
+  Palette,
   Plus,
   Ruler,
   Save,
   Search,
   Shirt,
   Trash2,
+  X,
 } from "lucide-react";
 
 import type { ActionResult } from "@/app/admin/produtos/actions";
@@ -60,6 +63,12 @@ type PendingGalleryImage = {
 
 type ManagedGalleryImage = ExistingGalleryImage | PendingGalleryImage;
 
+type VariationDraft = {
+  id: string;
+  label: string;
+  values: string;
+};
+
 const sizePresets = [
   {
     id: "clothing",
@@ -76,6 +85,45 @@ const sizePresets = [
     icon: Footprints,
     variationLabel: "Numeração",
     values: ["33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44"],
+  },
+  {
+    id: "fragrance",
+    label: "Perfumaria",
+    description: "Amostras a 200ml",
+    icon: Droplets,
+    variationLabel: "Volume",
+    values: [
+      "1,5 ml",
+      "2 ml",
+      "5 ml",
+      "10 ml",
+      "15 ml",
+      "30 ml",
+      "50 ml",
+      "75 ml",
+      "100 ml",
+      "125 ml",
+      "150 ml",
+      "200 ml",
+    ],
+  },
+  {
+    id: "colors",
+    label: "Cores",
+    description: "Variação visual",
+    icon: Palette,
+    variationLabel: "Cor",
+    values: [
+      "Preto",
+      "Branco",
+      "Cinza",
+      "Azul",
+      "Vermelho",
+      "Rosa",
+      "Verde",
+      "Bege",
+      "Marrom",
+    ],
   },
   {
     id: "custom",
@@ -116,6 +164,66 @@ function createPendingImageId() {
   }
 
   return `pending-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function createVariationDraftId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return `variation-${crypto.randomUUID()}`;
+  }
+
+  return `variation-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function createVariationDraft(
+  label = "Variação",
+  values: readonly string[] = [],
+  id = createVariationDraftId(),
+): VariationDraft {
+  return {
+    id,
+    label,
+    values: values.join(", "),
+  };
+}
+
+function getVariationValues(values: string) {
+  const seenValues = new Set<string>();
+
+  return values
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => {
+      const key = item.toLocaleLowerCase("pt-BR");
+
+      if (!item || seenValues.has(key)) {
+        return false;
+      }
+
+      seenValues.add(key);
+      return true;
+    });
+}
+
+function normalizeVariationDrafts(groups: VariationDraft[]) {
+  const seenLabels = new Set<string>();
+
+  return groups.flatMap((group) => {
+    const label = group.label.trim();
+    const values = getVariationValues(group.values);
+    const labelKey = label.toLocaleLowerCase("pt-BR");
+
+    if (!label || !values.length || seenLabels.has(labelKey)) {
+      return [];
+    }
+
+    seenLabels.add(labelKey);
+
+    return [{ label, values }];
+  });
+}
+
+function getVariationSignature(groups: VariationDraft[]) {
+  return JSON.stringify(normalizeVariationDrafts(groups));
 }
 
 function getGallerySignature(images: ManagedGalleryImage[]) {
@@ -166,13 +274,36 @@ function buildInitialGallery(product?: Product): ManagedGalleryImage[] {
   );
 }
 
+function buildInitialVariationGroups(product?: Product): VariationDraft[] {
+  const variations = product?.variations ?? [];
+
+  if (!variations.length) {
+    return [createVariationDraft("Tamanho", [], "variation-initial-empty")];
+  }
+
+  return variations.map((variation, index) =>
+    createVariationDraft(variation.label, variation.values, `variation-initial-${index}`),
+  );
+}
+
 export function ProductForm({ categories, product, action }: ProductFormProps) {
   const initialGallery = useMemo(() => buildInitialGallery(product), [product]);
   const initialGallerySignature = useMemo(
     () => getGallerySignature(initialGallery),
     [initialGallery],
   );
+  const initialVariationGroups = useMemo(
+    () => buildInitialVariationGroups(product),
+    [product],
+  );
+  const initialVariationSignature = useMemo(
+    () => getVariationSignature(initialVariationGroups),
+    [initialVariationGroups],
+  );
   const [galleryImages, setGalleryImages] = useState<ManagedGalleryImage[]>(initialGallery);
+  const [variationGroups, setVariationGroups] = useState<VariationDraft[]>(
+    initialVariationGroups,
+  );
   const [draggedImageId, setDraggedImageId] = useState<string | null>(null);
   const [categoryQuery, setCategoryQuery] = useState("");
   const [hasStockEnabled, setHasStockEnabled] = useState(
@@ -221,11 +352,11 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
     control: form.control,
     name: "stock",
   });
-  const variationValues = useWatch({
-    control: form.control,
-    name: "variations",
-  });
   const selectedCategory = categories.find((category) => category.id === selectedCategoryId);
+  const normalizedVariationGroups = useMemo(
+    () => normalizeVariationDrafts(variationGroups),
+    [variationGroups],
+  );
   const filteredCategories = useMemo(() => {
     const normalizedQuery = categoryQuery.trim().toLowerCase();
 
@@ -240,12 +371,14 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
     });
   }, [categories, categoryQuery]);
   const galleryDirty = getGallerySignature(galleryImages) !== initialGallerySignature;
-  const hasChanges = isDirty || galleryDirty;
+  const variationDirty =
+    getVariationSignature(variationGroups) !== initialVariationSignature;
+  const hasChanges = isDirty || galleryDirty || variationDirty;
   const stockNumber = Number(selectedStock) || 0;
-  const variationCount = String(variationValues ?? "")
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean).length;
+  const variationCount = normalizedVariationGroups.reduce(
+    (total, group) => total + group.values.length,
+    0,
+  );
 
   function appendField(formData: FormData, key: keyof ProductFormValues, value: unknown) {
     if (value === undefined || value === null) {
@@ -359,17 +492,61 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
   }
 
   function applySizePreset(preset: (typeof sizePresets)[number]) {
-    setValue("variation_label", preset.variationLabel, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
+    const nextGroup = createVariationDraft(preset.variationLabel, preset.values);
 
-    if (preset.values.length) {
-      setValue("variations", preset.values.join(", "), {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
-    }
+    setVariationGroups((groups) => {
+      const matchingIndex = groups.findIndex(
+        (group) =>
+          group.label.trim().toLocaleLowerCase("pt-BR") ===
+          preset.variationLabel.toLocaleLowerCase("pt-BR"),
+      );
+
+      if (matchingIndex >= 0) {
+        return groups.map((group, index) => (index === matchingIndex ? nextGroup : group));
+      }
+
+      const firstGroup = groups[0];
+
+      if (
+        groups.length === 1 &&
+        firstGroup &&
+        !firstGroup.values.trim() &&
+        firstGroup.label.trim().toLocaleLowerCase("pt-BR") === "tamanho"
+      ) {
+        return [nextGroup];
+      }
+
+      return [...groups, nextGroup];
+    });
+  }
+
+  function addVariationGroup() {
+    setVariationGroups((groups) => [...groups, createVariationDraft()]);
+  }
+
+  function updateVariationGroup(
+    groupId: string,
+    field: keyof Pick<VariationDraft, "label" | "values">,
+    value: string,
+  ) {
+    setVariationGroups((groups) =>
+      groups.map((group) =>
+        group.id === groupId
+          ? {
+              ...group,
+              [field]: value,
+            }
+          : group,
+      ),
+    );
+  }
+
+  function removeVariationGroup(groupId: string) {
+    setVariationGroups((groups) => {
+      const nextGroups = groups.filter((group) => group.id !== groupId);
+
+      return nextGroups.length ? nextGroups : [createVariationDraft("Tamanho")];
+    });
   }
 
   function setStockAvailability(enabled: boolean) {
@@ -392,8 +569,17 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
     appendField(formData, "compare_at_price", values.compare_at_price);
     appendField(formData, "category_id", values.category_id);
     appendField(formData, "stock", values.stock);
-    appendField(formData, "variations", values.variations);
-    appendField(formData, "variation_label", values.variation_label);
+    formData.append("variation_groups", JSON.stringify(normalizedVariationGroups));
+    appendField(
+      formData,
+      "variations",
+      normalizedVariationGroups[0]?.values.join(", ") ?? values.variations,
+    );
+    appendField(
+      formData,
+      "variation_label",
+      normalizedVariationGroups[0]?.label ?? values.variation_label,
+    );
     formData.append(
       "gallery_items",
       JSON.stringify(
@@ -566,7 +752,7 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
         </CompactSection>
 
         <CompactSection
-          title="Categoria e tamanhos"
+          title="Categoria e variações"
           description={`${selectedCategory?.name ?? "Sem categoria"} • ${variationCount || "sem"} opção${variationCount === 1 ? "" : "ões"}`}
         >
         <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
@@ -640,8 +826,8 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
 
           <div className="grid gap-3 self-start">
             <div className="grid gap-2">
-              <Label>Tipo de tamanho</Label>
-              <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+              <Label>Tipos de tamanho e variação</Label>
+              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                 {sizePresets.map((preset) => {
                   const Icon = preset.icon;
 
@@ -666,32 +852,70 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
               </div>
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="variation_label">Nome do seletor</Label>
-              <Input
-                id="variation_label"
-                placeholder="Tamanho, Numeração, Volume..."
-                {...register("variation_label")}
-              />
-              {errors.variation_label ? (
-                <p className="text-sm text-destructive">
-                  {errors.variation_label.message}
-                </p>
-              ) : null}
-            </div>
+            <div className="grid gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <Label>Grupos de variação</Label>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                    Use um grupo para tamanho, outro para cor, volume, fragrância ou material.
+                  </p>
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={addVariationGroup}>
+                  <Plus />
+                  Grupo
+                </Button>
+              </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="variations">Opções</Label>
-              <Input
-                id="variations"
-                placeholder="P, M, G ou 34, 35, 36"
-                {...register("variations")}
-              />
-              <p className="text-xs leading-5 text-muted-foreground">
-                Separe opções por vírgula. Use roupas, calçados ou uma lista manual.
-              </p>
-              {errors.variations ? (
-                <p className="text-sm text-destructive">{errors.variations.message}</p>
+              {variationGroups.map((group, index) => (
+                <div
+                  key={group.id}
+                  className="grid gap-3 border-2 border-border bg-muted/30 p-3"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-black uppercase text-muted-foreground">
+                      Variação {index + 1}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Remover grupo de variação"
+                      onClick={() => removeVariationGroup(group.id)}
+                    >
+                      <X />
+                    </Button>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor={`variation-label-${group.id}`}>Nome do seletor</Label>
+                    <Input
+                      id={`variation-label-${group.id}`}
+                      value={group.label}
+                      placeholder="Tamanho, Cor, Volume..."
+                      onChange={(event) =>
+                        updateVariationGroup(group.id, "label", event.target.value)
+                      }
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor={`variation-values-${group.id}`}>Opções</Label>
+                    <Input
+                      id={`variation-values-${group.id}`}
+                      value={group.values}
+                      placeholder="P, M, G ou Preto, Branco, Azul"
+                      onChange={(event) =>
+                        updateVariationGroup(group.id, "values", event.target.value)
+                      }
+                    />
+                    <p className="text-xs leading-5 text-muted-foreground">
+                      Separe por vírgula. Cada grupo aparece como uma escolha no produto.
+                    </p>
+                  </div>
+                </div>
+              ))}
+              {errors.variation_groups ? (
+                <p className="text-sm text-destructive">
+                  {errors.variation_groups.message}
+                </p>
               ) : null}
             </div>
           </div>

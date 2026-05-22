@@ -111,13 +111,7 @@ export async function updateHeroImagesAction(
 
     const desktopImage = getImageFile(formData, "desktop_image");
     const mobileImage = getImageFile(formData, "mobile_image");
-
-    if (!desktopImage && !mobileImage) {
-      return {
-        ok: false,
-        message: "Escolha pelo menos uma imagem.",
-      };
-    }
+    const overlayEnabled = formData.get("overlay_enabled") === "on";
 
     const currentImage = await getHeroImageSetting();
     const [uploadedDesktop, uploadedMobile] = await Promise.all([
@@ -128,6 +122,7 @@ export async function updateHeroImagesAction(
     await updateHeroImageSetting({
       desktop: uploadedDesktop ?? currentImage.desktop,
       mobile: uploadedMobile ?? currentImage.mobile,
+      overlayEnabled,
     });
 
     revalidatePath("/");

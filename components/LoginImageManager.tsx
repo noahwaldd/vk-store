@@ -23,9 +23,10 @@ export function LoginImageManager({
   const [previewUrl, setPreviewUrl] = useState(currentImage.url);
   const [grayscale, setGrayscale] = useState(currentImage.grayscale ?? true);
   const [savedGrayscale, setSavedGrayscale] = useState(currentImage.grayscale ?? true);
+  const [grayscaleTouched, setGrayscaleTouched] = useState(false);
   const [hasSelectedFile, setHasSelectedFile] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const hasChanges = hasSelectedFile || grayscale !== savedGrayscale;
+  const hasChanges = hasSelectedFile || grayscale !== savedGrayscale || grayscaleTouched;
 
   function handleImageChange(file?: File | null) {
     if (!file) {
@@ -47,6 +48,7 @@ export function LoginImageManager({
           if (result.ok) {
             toast.success(result.message);
             setSavedGrayscale(grayscale);
+            setGrayscaleTouched(false);
             setHasSelectedFile(false);
           } else {
             toast.error(result.message);
@@ -97,7 +99,10 @@ export function LoginImageManager({
             type="checkbox"
             className="size-4 accent-primary"
             checked={grayscale}
-            onChange={(event) => setGrayscale(event.target.checked)}
+            onChange={(event) => {
+              setGrayscale(event.target.checked);
+              setGrayscaleTouched(true);
+            }}
           />
           Exibir foto em preto e branco
         </label>
@@ -123,7 +128,7 @@ export function LoginImageManager({
               alt="Prévia da foto do login"
               fill
               sizes="320px"
-              className={`object-contain p-3 ${grayscale ? "grayscale" : ""}`}
+              className={`object-cover ${grayscale ? "grayscale" : ""}`}
               unoptimized
             />
           ) : (

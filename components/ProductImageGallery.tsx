@@ -38,8 +38,8 @@ export function ProductImageGallery({
   }
 
   return (
-    <div className="grid gap-4">
-      <div className="relative aspect-[4/5] overflow-hidden rounded-none border-2 border-foreground bg-background">
+    <div className="grid w-full max-w-[430px] gap-2 justify-self-center lg:justify-self-start">
+      <div className="relative aspect-[4/3] max-h-[430px] overflow-hidden rounded-none border-2 border-foreground bg-muted/35 lg:aspect-square">
         {activeImage ? (
           <button
             type="button"
@@ -52,8 +52,8 @@ export function ProductImageGallery({
               alt={activeImage.alt ?? productName}
               fill
               priority
-              sizes="(min-width: 1024px) 55vw, 100vw"
-              className="object-cover"
+              sizes="(min-width: 1024px) 430px, 100vw"
+              className="object-contain"
               unoptimized
             />
           </button>
@@ -94,7 +94,7 @@ export function ProductImageGallery({
       </div>
 
       {hasMultipleImages ? (
-        <div className="flex gap-3 overflow-x-auto pb-1">
+        <div className="scrollbar-none flex gap-2 overflow-x-auto pb-1">
           {images.map((image, index) => {
             const selected = index === activeIndex;
 
@@ -104,7 +104,7 @@ export function ProductImageGallery({
                 type="button"
                 aria-label={`Ver foto ${index + 1}`}
                 aria-pressed={selected}
-                className={`relative aspect-square w-20 shrink-0 overflow-hidden rounded-none border-2 bg-background transition-colors sm:w-24 ${
+                className={`relative aspect-square w-14 shrink-0 overflow-hidden rounded-none border-2 bg-background transition-colors sm:w-16 ${
                   selected ? "border-foreground" : "border-border hover:border-foreground"
                 }`}
                 onClick={() => setActiveIndex(index)}

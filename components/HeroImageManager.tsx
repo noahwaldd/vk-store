@@ -25,8 +25,15 @@ export function HeroImageManager({
   const [mobilePreview, setMobilePreview] = useState(currentImage.mobile.url);
   const [hasDesktopFile, setHasDesktopFile] = useState(false);
   const [hasMobileFile, setHasMobileFile] = useState(false);
+  const [overlayEnabled, setOverlayEnabled] = useState(
+    currentImage.overlayEnabled ?? true,
+  );
+  const [savedOverlayEnabled, setSavedOverlayEnabled] = useState(
+    currentImage.overlayEnabled ?? true,
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const hasChanges = hasDesktopFile || hasMobileFile;
+  const hasChanges =
+    hasDesktopFile || hasMobileFile || overlayEnabled !== savedOverlayEnabled;
 
   function updatePreview(
     file: File | null | undefined,
@@ -55,6 +62,7 @@ export function HeroImageManager({
             formRef.current?.reset();
             setHasDesktopFile(false);
             setHasMobileFile(false);
+            setSavedOverlayEnabled(overlayEnabled);
           } else {
             toast.error(result.message);
           }
@@ -79,6 +87,17 @@ export function HeroImageManager({
           larga para computador e outra vertical para celular.
         </p>
       </div>
+
+      <label className="flex items-center gap-3 border-2 border-border bg-muted/40 p-3 text-sm font-medium">
+        <input
+          name="overlay_enabled"
+          type="checkbox"
+          className="size-4 accent-primary"
+          checked={overlayEnabled}
+          onChange={(event) => setOverlayEnabled(event.target.checked)}
+        />
+        Aplicar efeito de contraste sobre a foto da capa
+      </label>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="grid gap-3">
@@ -108,7 +127,7 @@ export function HeroImageManager({
                 alt="Prévia da capa no computador"
                 fill
                 sizes="(min-width: 1024px) 50vw, 100vw"
-                className="object-cover"
+                className={`object-cover ${overlayEnabled ? "opacity-75" : ""}`}
                 unoptimized
               />
             ) : (
@@ -146,7 +165,7 @@ export function HeroImageManager({
                 alt="Prévia da capa no celular"
                 fill
                 sizes="(min-width: 1024px) 50vw, 100vw"
-                className="object-cover"
+                className={`object-cover ${overlayEnabled ? "opacity-75" : ""}`}
                 unoptimized
               />
             ) : (

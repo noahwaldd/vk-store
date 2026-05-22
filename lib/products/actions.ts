@@ -14,6 +14,7 @@ export function parseProductPayload(formData: FormData): ProductPayload {
     stock: formData.get("stock"),
     variations: formData.get("variations") || "",
     variation_label: formData.get("variation_label") || "",
+    variation_groups: formData.get("variation_groups") || "",
     featured: formData.get("featured") === "on",
   };
 
@@ -163,10 +164,76 @@ function parseGalleryItems(formData: FormData): ProductGalleryItem[] | null {
   });
 }
 
-function toVariationPayload(
-  value: string | undefined,
-  label: string | undefined,
-): ProductVariation[] {
+function normalizeVariationValues(values: unknown) {
+  if (!Array.isArray(values)) {
+    return [];
+  }
+
+  const seenValues = new Set<string>();
+
+  return values
+    .map((item) => String(item).trim())
+    .filter((item) => {
+      const key = item.toLocaleLowerCase("pt-BR");
+
+      if (!item || seenValues.has(key)) {
+        return false;
+      }
+
+      seenValues.add(key);
+      return true;
+    });
+}
+
+function parseVariationGroups(value: string | undefined): ProductVariation[] {
+  if (!value?.trim()) {
+    return [];
+  }
+
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    throw new Error("Variações inválidas.");
+  }
+
+  if (!Array.isArray(parsed)) {
+    throw new Error("Variações inválidas.");
+  }
+
+  const seenLabels = new Set<string>();
+
+  return parsed.flatMap((item): ProductVariation[] => {
+    if (!item || typeof item !== "object") {
+      return [];
+    }
+
+    const variation = item as { label?: unknown; values?: unknown };
+    const label = String(variation.label ?? "").trim();
+    const values = normalizeVariationValues(variation.values);
+    const labelKey = label.toLocaleLowerCase("pt-BR");
+
+    if (!label || !values.length || seenLabels.has(labelKey)) {
+      return [];
+    }
+
+    seenLabels.add(labelKey);
+
+    return [{ label, values }];
+  });
+}
+
+function toVariationPayload(payload: ProductPayload): ProductVariation[] {
+  const groupedVariations = parseVariationGroups(payload.variation_groups);
+
+  if (groupedVariations.length) {
+    return groupedVariations;
+  }
+
+  const value = payload.variations;
+  const label = payload.variation_label;
+
   if (!value?.trim()) {
     return [];
   }
@@ -254,7 +321,7 @@ export async function createProduct(formData: FormData) {
       compare_at_price: payload.compare_at_price || null,
       category_id: payload.category_id,
       stock: payload.stock,
-      variations: toVariationPayload(payload.variations, payload.variation_label),
+      variations: toVariationPayload(payload),
       featured: Boolean(payload.featured),
       images: images.length
         ? {
@@ -291,7 +358,7 @@ export async function updateProduct(id: string, formData: FormData) {
       compare_at_price: payload.compare_at_price || null,
       category_id: payload.category_id,
       stock: payload.stock,
-      variations: toVariationPayload(payload.variations, payload.variation_label),
+      variations: toVariationPayload(payload),
       featured: Boolean(payload.featured),
     },
   });

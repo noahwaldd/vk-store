@@ -40,7 +40,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           alt="VK Store"
           fill
           sizes="50vw"
-          className={`object-contain p-8 opacity-90 lg:p-12 ${
+          className={`object-cover object-center opacity-95 ${
             loginImage.grayscale ?? true ? "grayscale" : ""
           }`}
           unoptimized

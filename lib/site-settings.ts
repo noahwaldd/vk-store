@@ -17,6 +17,7 @@ export type LoginImageSetting = {
 export type HeroImageSetting = {
   desktop: LoginImageSetting;
   mobile: LoginImageSetting;
+  overlayEnabled: boolean;
 };
 
 export type OfferSectionSetting = {
@@ -48,6 +49,7 @@ export const defaultHeroImage: HeroImageSetting = {
     url: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=85",
     key: null,
   },
+  overlayEnabled: true,
 };
 
 export const defaultOfferSection: OfferSectionSetting = {
@@ -95,7 +97,11 @@ function parseHeroImage(value: unknown): HeroImageSetting | null {
     return null;
   }
 
-  const setting = value as { desktop?: unknown; mobile?: unknown };
+  const setting = value as {
+    desktop?: unknown;
+    mobile?: unknown;
+    overlayEnabled?: unknown;
+  };
   const desktop = parseLoginImage(setting.desktop);
   const mobile = parseLoginImage(setting.mobile);
 
@@ -106,6 +112,10 @@ function parseHeroImage(value: unknown): HeroImageSetting | null {
   return {
     desktop: desktop ?? defaultHeroImage.desktop,
     mobile: mobile ?? desktop ?? defaultHeroImage.mobile,
+    overlayEnabled:
+      typeof setting.overlayEnabled === "boolean"
+        ? setting.overlayEnabled
+        : defaultHeroImage.overlayEnabled,
   };
 }
 

@@ -251,6 +251,11 @@ export function CategoryManager({
                   type="file"
                   accept="image/jpeg,image/png,image/webp,image/avif"
                 />
+                <p className="text-xs leading-5 text-muted-foreground">
+                  {category.image_url
+                    ? "Foto atual cadastrada. Envie outra imagem para substituir."
+                    : "Sem foto cadastrada. Recomendado: 1200 x 900 px, até 5MB."}
+                </p>
                 <label className="flex items-center gap-2 text-sm text-muted-foreground">
                   <input
                     name="remove_image"

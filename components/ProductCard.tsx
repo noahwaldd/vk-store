@@ -3,13 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
-import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
-import { useCartStore } from "@/store/cart-store";
 import type { Product } from "@/types/product";
 
 type ProductCardProps = {
@@ -17,28 +15,25 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product }: ProductCardProps) {
-  const addItem = useCartStore((state) => state.addItem);
   const image = product.images[0]?.url;
-  const firstVariation = product.variations[0];
-  const visibleVariationValues = firstVariation?.values.slice(0, 4) ?? [];
-  const hiddenVariationCount =
-    firstVariation && firstVariation.values.length > visibleVariationValues.length
-      ? firstVariation.values.length - visibleVariationValues.length
-      : 0;
+  const variationSummary = product.variations
+    .slice(0, 2)
+    .map((variation) => {
+      const visibleValues = variation.values.slice(0, 3);
+      const hiddenCount = variation.values.length - visibleValues.length;
+
+      return `${variation.label}: ${visibleValues.join(", ")}${
+        hiddenCount > 0 ? ` +${hiddenCount}` : ""
+      }`;
+    })
+    .join(" • ");
   const hasDiscount =
     product.compare_at_price && product.compare_at_price > product.price;
-
-  function handleAddToCart() {
-    addItem(product);
-    toast.success("Produto adicionado ao carrinho.", {
-      id: `cart-add-${product.id}`,
-    });
-  }
 
   return (
     <Card data-animate className="group overflow-hidden p-0">
       <Link href={`/produto/${product.slug}`} className="block">
-        <div className="relative aspect-[4/5] overflow-hidden bg-muted">
+        <div className="relative aspect-[5/6] overflow-hidden bg-muted">
           {image ? (
             <Image
               src={image}
@@ -61,8 +56,8 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
       </Link>
 
-      <div className="grid gap-3 p-4">
-        <div className="min-h-20">
+      <div className="grid gap-3 p-3">
+        <div className="min-h-16">
           <p className="text-xs font-semibold uppercase text-muted-foreground">
             {product.category?.name ?? "Produto"}
           </p>
@@ -72,10 +67,9 @@ export function ProductCard({ product }: ProductCardProps) {
           >
             {product.name}
           </Link>
-          {visibleVariationValues.length ? (
+          {variationSummary ? (
             <p className="mt-2 line-clamp-1 text-xs font-medium text-muted-foreground">
-              Disponível: {visibleVariationValues.join(", ")}
-              {hiddenVariationCount ? ` +${hiddenVariationCount}` : ""}
+              {variationSummary}
             </p>
           ) : null}
         </div>
@@ -87,35 +81,24 @@ export function ProductCard({ product }: ProductCardProps) {
                 {formatCurrency(product.compare_at_price ?? 0)}
               </p>
             ) : null}
-            <p className="text-lg font-black">{formatCurrency(product.price)}</p>
+            <p className="text-base font-black">{formatCurrency(product.price)}</p>
           </div>
           <Badge variant={product.stock > 0 ? "muted" : "outline"}>
             {product.stock > 0 ? `${product.stock} un.` : "Esgotado"}
           </Badge>
         </div>
 
-        {firstVariation ? (
-          product.stock > 0 ? (
-            <Button asChild className="add-cart-cta w-full">
-              <Link href={`/produto/${product.slug}`}>
-                <ShoppingCart />
-                Comprar
-              </Link>
-            </Button>
-          ) : (
-            <Button disabled className="add-cart-cta w-full">
+        {product.stock > 0 ? (
+          <Button asChild className="add-cart-cta w-full">
+            <Link href={`/produto/${product.slug}`}>
               <ShoppingCart />
-              Esgotado
-            </Button>
-          )
+              Comprar
+            </Link>
+          </Button>
         ) : (
-          <Button
-            onClick={handleAddToCart}
-            disabled={product.stock <= 0}
-            className="add-cart-cta w-full"
-          >
+          <Button disabled className="add-cart-cta w-full">
             <ShoppingCart />
-            Adicionar
+            Esgotado
           </Button>
         )}
       </div>

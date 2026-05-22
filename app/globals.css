@@ -130,6 +130,14 @@ textarea {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 35%, transparent);
 }
 
+.scrollbar-none {
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 .site-header {
   transition:
     border-width 180ms ease,
@@ -640,6 +648,7 @@ textarea {
 
 .btn-variant {
   min-width: 2.75rem;
+  max-width: 100%;
   position: relative;
 }
 

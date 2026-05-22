@@ -83,7 +83,7 @@ export function MobileMenu({
           />
         </form>
 
-        <nav className="mt-5 grid gap-2">
+        <nav className="mt-5 grid max-h-[55dvh] gap-2 overflow-y-auto pr-1">
           {items.map((item) => (
             <SheetClose key={item.href} asChild>
               <Link

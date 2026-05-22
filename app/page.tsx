@@ -3,6 +3,7 @@ import Image from "next/image";
 import { ArrowRight, BadgePercent } from "lucide-react";
 
 import { BrandMarquee } from "@/components/BrandMarquee";
+import { CategoryCarousel } from "@/components/CategoryCarousel";
 import { ProductGrid } from "@/components/ProductGrid";
 import { Button } from "@/components/ui/button";
 import { getCategories, getFeaturedProducts } from "@/lib/products";
@@ -43,7 +44,9 @@ export default async function HomePage() {
           alt=""
           fill
           sizes="100vw"
-          className="hidden object-cover opacity-75 sm:block"
+          className={`hidden object-cover sm:block ${
+            heroImage.overlayEnabled ? "opacity-75" : "opacity-100"
+          }`}
           priority
           unoptimized
         />
@@ -52,12 +55,18 @@ export default async function HomePage() {
           alt=""
           fill
           sizes="100vw"
-          className="object-cover opacity-75 sm:hidden"
+          className={`object-cover sm:hidden ${
+            heroImage.overlayEnabled ? "opacity-75" : "opacity-100"
+          }`}
           priority
           unoptimized
         />
-        <div className="pointer-events-none absolute inset-0 bg-foreground/55" />
-        <div className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(135deg,rgba(255,255,255,0.08)_0_2px,transparent_2px_18px)]" />
+        {heroImage.overlayEnabled ? (
+          <>
+            <div className="pointer-events-none absolute inset-0 bg-foreground/55" />
+            <div className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(135deg,rgba(255,255,255,0.08)_0_2px,transparent_2px_18px)]" />
+          </>
+        ) : null}
         <div className="container-shell relative grid min-h-[520px] items-end py-10 md:min-h-[620px] md:py-12">
           <div className="max-w-3xl pb-10">
             <h1 className="font-graffiti text-7xl leading-[0.85] text-background sm:text-9xl lg:text-[150px]">
@@ -105,47 +114,7 @@ export default async function HomePage() {
           </Button>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          {categories.slice(0, 3).map((category, index) => (
-            <Link
-              key={category.id}
-              href={`/produtos?categoria=${category.slug}`}
-              data-animate
-              className="group relative flex min-h-[320px] overflow-hidden border-2 border-foreground bg-foreground text-background transition-all hover:-translate-y-1 hover:shadow-[10px_10px_0_var(--street-lime)]"
-            >
-              {category.image_url ? (
-                <Image
-                  src={category.image_url}
-                  alt={category.name}
-                  fill
-                  sizes="(min-width: 768px) 33vw, 100vw"
-                  className="object-cover opacity-80 transition duration-500 group-hover:scale-105 group-hover:opacity-95"
-                  unoptimized
-                />
-              ) : (
-                <div className="absolute inset-0 bg-[repeating-linear-gradient(135deg,var(--street-lime)_0_18px,var(--street-orange)_18px_36px,var(--asphalt)_36px_62px)]" />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/65 to-foreground/15" />
-              <div className="relative mt-auto grid min-h-48 content-end gap-4 p-6">
-                <span className="w-fit border-2 border-background bg-street-lime px-3 py-1 text-xs font-black uppercase text-foreground">
-                  Seção {index + 1}
-                </span>
-                <h3 className="font-display text-5xl uppercase leading-none sm:text-6xl">
-                  {category.name}
-                </h3>
-                {category.description ? (
-                  <p className="max-w-sm text-sm font-medium leading-6 text-background/82">
-                    {category.description}
-                  </p>
-                ) : null}
-                <span className="inline-flex min-h-11 w-fit items-center gap-2 border-2 border-background bg-background px-4 font-display text-lg uppercase text-foreground transition-colors group-hover:bg-street-lime">
-                  Ver produtos
-                  <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
+        <CategoryCarousel categories={categories} />
       </section>
 
       <section className="container-shell py-16">
