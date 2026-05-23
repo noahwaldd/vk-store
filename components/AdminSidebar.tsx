@@ -70,7 +70,7 @@ export function AdminSidebar() {
   return (
     <aside
       data-collapsed={isCollapsed}
-      className="admin-sidebar z-20 w-full self-start border-2 border-foreground bg-background p-2 shadow-[6px_6px_0_var(--border)] transition-[width] lg:sticky lg:top-28 lg:min-h-[calc(100vh-8rem)] lg:w-[248px] lg:data-[collapsed=true]:w-16"
+      className="admin-sidebar z-20 h-fit w-full self-start border-2 border-foreground bg-background p-2 shadow-[6px_6px_0_var(--border)] transition-[width] lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:w-[248px] lg:overflow-y-auto lg:data-[collapsed=true]:w-16"
     >
       <div
         className={cn(

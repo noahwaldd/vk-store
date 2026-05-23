@@ -92,8 +92,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="container-shell py-8 md:py-10">
-        <div className="mb-5 flex flex-col items-start gap-3 border-b border-border pb-3 sm:flex-row sm:items-end sm:justify-between">
+      <section className="container-shell py-6 md:py-8">
+        <div className="mb-4 flex flex-col items-start gap-3 border-b border-border pb-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="font-display text-sm tracking-widest text-muted-foreground">
               Categorias
@@ -117,7 +117,7 @@ export default async function HomePage() {
         <CategoryCarousel categories={categories} />
       </section>
 
-      <section className="container-shell py-8 md:py-10">
+      <section className="container-shell pb-8 pt-4 md:pb-10 md:pt-6">
         <div className="mb-5 flex flex-col items-start gap-3 border-b border-border pb-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="font-display text-sm tracking-widest text-muted-foreground">

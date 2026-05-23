@@ -101,13 +101,14 @@ export function CategoryCarousel({ categories }: CategoryCarouselProps) {
         ))}
       </div>
 
-      <div className="mt-3 flex justify-end gap-2">
+      <div className="pointer-events-none absolute inset-y-0 left-0 right-0 flex items-center justify-between">
         <Button
           type="button"
           variant="outline"
           size="icon"
           aria-label="Ver categorias anteriores"
           disabled={!canScrollBack}
+          className="pointer-events-auto ml-2 border-street-lime bg-background/95 shadow-[4px_4px_0_var(--street-lime)] disabled:pointer-events-none disabled:opacity-0"
           onClick={() => scrollCategories(-1)}
         >
           <ChevronLeft />
@@ -118,6 +119,7 @@ export function CategoryCarousel({ categories }: CategoryCarouselProps) {
           size="icon"
           aria-label="Ver próximas categorias"
           disabled={!canScrollForward}
+          className="pointer-events-auto mr-2 border-street-lime bg-background/95 shadow-[4px_4px_0_var(--street-lime)] disabled:pointer-events-none disabled:opacity-0"
           onClick={() => scrollCategories(1)}
         >
           <ChevronRight />

@@ -78,7 +78,7 @@ export function CheckoutForm({
   const clearCart = useCartStore((state) => state.clearCart);
   const [isPending, startTransition] = useTransition();
   const [whatsappUrl, setWhatsappUrl] = useState<string | null>(null);
-  const [orderId, setOrderId] = useState<string | null>(null);
+  const [orderCode, setOrderCode] = useState<string | null>(null);
   const savedProfileAvailable = hasProfileData(savedProfile);
   const [profileMode, setProfileMode] = useState<"saved" | "custom">(
     savedProfileAvailable ? "saved" : "custom",
@@ -194,7 +194,7 @@ export function CheckoutForm({
         id: "checkout-submit",
       });
       setWhatsappUrl(result.whatsappUrl ?? null);
-      setOrderId(result.orderId ?? null);
+      setOrderCode(result.orderCode ?? null);
 
       if (result.whatsappUrl) {
         window.location.href = result.whatsappUrl;
@@ -422,9 +422,9 @@ export function CheckoutForm({
           </Button>
         </div>
 
-        {orderId ? (
+        {orderCode ? (
           <div className="rounded-none border-2 border-border bg-muted p-3 text-sm">
-            Pedido criado: <strong>{orderId}</strong>
+            Pedido criado: <strong>{orderCode}</strong>
             {whatsappUrl ? (
               <Button asChild variant="link" className="ml-2">
                 <a href={whatsappUrl} target="_blank" rel="noreferrer">

@@ -31,7 +31,7 @@ export function ProductCard({ product }: ProductCardProps) {
     product.compare_at_price && product.compare_at_price > product.price;
 
   return (
-    <Card data-animate className="group overflow-hidden p-0">
+    <Card data-animate className="group flex h-full flex-col overflow-hidden p-0">
       <Link href={`/produto/${product.slug}`} className="block">
         <div className="relative aspect-[4/5] overflow-hidden bg-muted">
           {image ? (
@@ -48,11 +48,16 @@ export function ProductCard({ product }: ProductCardProps) {
               Sem imagem
             </div>
           )}
+          {hasDiscount ? (
+            <Badge className="offer-badge absolute left-3 top-3">
+              Oferta
+            </Badge>
+          ) : null}
         </div>
       </Link>
 
-      <div className="grid gap-2.5 p-3">
-        <div className="min-h-14">
+      <div className="flex flex-1 flex-col gap-2.5 p-3">
+        <div className="min-h-[5.75rem]">
           <p className="text-xs font-semibold uppercase text-muted-foreground">
             {product.category?.name ?? "Produto"}
           </p>
@@ -69,36 +74,35 @@ export function ProductCard({ product }: ProductCardProps) {
           ) : null}
         </div>
 
-        <div className="flex items-end justify-between gap-3">
-          <div>
-            {hasDiscount ? (
-              <p className="text-xs text-muted-foreground line-through">
-                {formatCurrency(product.compare_at_price ?? 0)}
-              </p>
-            ) : null}
-            <p className="text-base font-black">{formatCurrency(product.price)}</p>
-          </div>
-          <div className="flex shrink-0 flex-col items-end gap-1">
-            {hasDiscount ? <Badge className="offer-badge">Oferta</Badge> : null}
+        <div className="mt-auto grid gap-2.5">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              {hasDiscount ? (
+                <p className="text-xs text-muted-foreground line-through">
+                  {formatCurrency(product.compare_at_price ?? 0)}
+                </p>
+              ) : null}
+              <p className="text-base font-black">{formatCurrency(product.price)}</p>
+            </div>
             <Badge variant={product.stock > 0 ? "muted" : "outline"}>
               {product.stock > 0 ? `${product.stock} un.` : "Esgotado"}
             </Badge>
           </div>
-        </div>
 
-        {product.stock > 0 ? (
-          <Button asChild className="add-cart-cta w-full">
-            <Link href={`/produto/${product.slug}`}>
+          {product.stock > 0 ? (
+            <Button asChild className="add-cart-cta w-full">
+              <Link href={`/produto/${product.slug}`}>
+                <ShoppingCart />
+                Comprar
+              </Link>
+            </Button>
+          ) : (
+            <Button disabled className="add-cart-cta w-full">
               <ShoppingCart />
-              Comprar
-            </Link>
-          </Button>
-        ) : (
-          <Button disabled className="add-cart-cta w-full">
-            <ShoppingCart />
-            Esgotado
-          </Button>
-        )}
+              Esgotado
+            </Button>
+          )}
+        </div>
       </div>
     </Card>
   );

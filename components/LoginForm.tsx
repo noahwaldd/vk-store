@@ -93,21 +93,21 @@ export function LoginForm({
 
   return (
     <div className="w-full">
-      <div className="mb-8 border-b-2 border-foreground pb-6">
+      <div className="mb-6 border-b-2 border-foreground pb-5">
         <p className="font-display text-sm uppercase tracking-[0.2em] text-muted-foreground">
           Conta VK
         </p>
-        <h1 className="mt-3 font-graffiti text-6xl leading-[0.9] text-foreground sm:text-7xl">
+        <h1 className="mt-3 font-graffiti text-5xl leading-[0.9] text-foreground sm:text-6xl">
           {displayTitle}
         </h1>
         {displayDescription ? (
-          <p className="mt-5 text-sm leading-6 text-muted-foreground">
+          <p className="mt-4 text-sm leading-6 text-muted-foreground">
             {displayDescription}
           </p>
         ) : null}
       </div>
 
-      <div className="mb-6 grid grid-cols-2 border-2 border-foreground">
+      <div className="mb-5 grid grid-cols-2 border-2 border-foreground">
         <button
           type="button"
           className={`h-11 font-display uppercase tracking-widest ${
@@ -132,7 +132,7 @@ export function LoginForm({
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="grid gap-5">
+      <form onSubmit={handleSubmit} className="grid gap-4">
         {mode === "register" ? (
           <div className="grid gap-3 sm:grid-cols-2">
             <Input
@@ -259,7 +259,7 @@ export function LoginForm({
         <Button
           type="submit"
           disabled={isLoading}
-          className="mt-2 h-14 rounded-none border-2 border-foreground bg-foreground font-display text-xl uppercase tracking-widest text-background transition-colors hover:bg-background hover:text-foreground"
+          className="mt-1 h-[3.25rem] min-h-[3.25rem] rounded-none border-2 border-foreground bg-foreground font-display text-lg uppercase tracking-widest text-background transition-colors hover:bg-background hover:text-foreground sm:h-14 sm:min-h-14 sm:text-xl"
         >
           {isLoading
             ? mode === "register"
@@ -271,7 +271,7 @@ export function LoginForm({
         </Button>
       </form>
 
-      <div className="mt-5 grid gap-3 text-xs font-bold uppercase text-muted-foreground">
+      <div className="mt-4 grid gap-2 text-xs font-bold uppercase text-muted-foreground">
         <span>
           {mode === "login"
             ? "Novo por aqui? Use Criar conta."

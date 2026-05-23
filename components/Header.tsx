@@ -38,13 +38,13 @@ export async function Header() {
     <HeaderFrame>
       {promoBanner.enabled ? (
         <div className="site-promo border-b-2 border-foreground bg-street-lime text-foreground">
-          <div className="container-shell flex min-h-10 items-center justify-center gap-2 py-2 text-center text-xs font-black uppercase sm:text-sm">
-            <Megaphone className="size-4 shrink-0" />
+          <div className="container-shell flex min-h-8 items-center justify-center gap-2 py-1.5 text-center text-[11px] font-black uppercase sm:text-xs">
+            <Megaphone className="size-3.5 shrink-0" />
             <span>{promoBanner.message}</span>
           </div>
         </div>
       ) : null}
-      <div className="site-header-inner container-shell flex min-h-16 items-center gap-2 py-2 sm:min-h-20 sm:gap-3 lg:min-h-28 lg:gap-4 lg:py-4">
+      <div className="site-header-inner container-shell flex min-h-14 items-center gap-2 py-1.5 sm:min-h-16 sm:gap-3 lg:min-h-20 lg:gap-3 lg:py-2">
         <MobileMenu
           items={mobileItems}
           accountHref={accountHref}
@@ -58,31 +58,30 @@ export async function Header() {
             alt="VK Store"
             width={72}
             height={72}
-            className="site-logo-mark size-11 bg-foreground object-contain sm:size-14 lg:size-[72px]"
+            className="site-logo-mark size-10 bg-foreground object-contain sm:size-12 lg:size-14"
           />
-          <span className="site-logo-text hidden font-graffiti text-4xl tracking-wide md:inline lg:text-5xl">
+          <span className="site-logo-text hidden font-graffiti text-3xl tracking-wide md:inline lg:text-4xl">
             VK Store
           </span>
         </Link>
 
         <form action="/produtos" className="relative hidden flex-1 lg:block">
-          <Search className="pointer-events-none absolute left-4 top-1/2 size-6 -translate-y-1/2 text-muted-foreground" />
+          <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
           <Input
             name="q"
             type="search"
             placeholder="Buscar camisetas, perfumes, acessórios..."
-            className="site-header-search h-14 pl-12 text-lg"
+            className="site-header-search h-11 pl-11 text-sm"
           />
         </form>
 
-        <nav className="ml-auto hidden min-w-0 max-w-[min(42vw,720px)] items-center gap-1 overflow-visible lg:flex">
+        <nav className="ml-auto hidden min-w-0 max-w-[min(44vw,760px)] items-center gap-1 overflow-visible lg:flex">
           {desktopItems.map((item) => (
             <Button
               key={item.href}
               asChild
               variant="ghost"
-              size="lg"
-              className="shrink-0 px-4 text-base font-semibold xl:px-5 xl:text-lg"
+              className="h-10 shrink-0 px-3 text-sm font-semibold xl:px-4 xl:text-base"
             >
               <Link href={item.href}>{item.label}</Link>
             </Button>
@@ -93,14 +92,14 @@ export async function Header() {
         {user ? (
           <div className="hidden items-center gap-3 lg:flex">
             {isAdmin ? (
-              <Button asChild variant="ghost" size="lg" className="rounded-none text-lg font-semibold">
+              <Button asChild variant="ghost" className="rounded-none text-sm font-semibold xl:text-base">
                 <Link href="/admin">
                   <UserRound className="size-6" />
                   Painel
                 </Link>
               </Button>
             ) : (
-              <Button asChild variant="ghost" size="lg" className="rounded-none text-lg font-semibold">
+              <Button asChild variant="ghost" className="rounded-none text-sm font-semibold xl:text-base">
                 <Link href="/conta">
                   <UserRound className="size-6" />
                   Conta
@@ -110,7 +109,7 @@ export async function Header() {
             <SignOutButton />
           </div>
         ) : (
-          <Button asChild variant="ghost" size="lg" className="hidden rounded-none text-lg font-semibold lg:inline-flex">
+          <Button asChild variant="ghost" className="hidden rounded-none text-sm font-semibold lg:inline-flex xl:text-base">
             <Link href="/login?next=/conta">
               <UserRound className="size-6" />
               Entrar

@@ -4,7 +4,7 @@ import { formatCurrency } from "@/lib/utils";
 import type { CartItem } from "@/types/order";
 
 type WhatsAppOrderInput = {
-  orderId: string;
+  orderReference: string;
   items: CartItem[];
   total: number;
   couponCode?: string | null;
@@ -58,7 +58,7 @@ function buildWhatsAppOrderMessage(input: WhatsAppOrderInput) {
   const lines = [
     "Olá, VK Store! Quero finalizar meu pedido.",
     "",
-    `Pedido: ${input.orderId}`,
+    `Pedido: ${input.orderReference}`,
     `Nome: ${input.customer.name}`,
     `Telefone: ${input.customer.phone}`,
     `E-mail: ${input.customer.email}`,

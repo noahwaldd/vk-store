@@ -28,28 +28,25 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const loginImage = await getLoginImageSetting();
 
   return (
-    <div className="grid min-h-[calc(100dvh-5rem)] bg-background md:grid-cols-2">
-      <div className="flex w-full flex-col justify-center px-6 py-8 sm:px-10 lg:px-20">
-        <div className="mx-auto w-full max-w-md">
-          <LoginForm redirectPath={safeRedirectPath(params.next)} />
+    <div className="grid min-h-[calc(100dvh-5rem)] place-items-center bg-background px-4 py-6 sm:px-6 lg:px-8">
+      <div className="grid w-full max-w-6xl items-stretch border-2 border-foreground bg-background md:grid-cols-[minmax(0,0.96fr)_minmax(320px,1fr)]">
+        <div className="flex min-w-0 flex-col justify-center px-5 py-6 sm:px-8 lg:px-12">
+          <div className="mx-auto w-full max-w-md">
+            <LoginForm redirectPath={safeRedirectPath(params.next)} />
+          </div>
         </div>
-      </div>
-      <div className="relative hidden min-h-[420px] overflow-hidden bg-foreground md:block md:h-[calc(100dvh-10rem)] md:self-start">
-        <Image
-          src={loginImage.url}
-          alt="VK Store"
-          fill
-          sizes="50vw"
-          className={`object-cover object-center opacity-95 ${
-            loginImage.grayscale ?? true ? "grayscale" : ""
-          }`}
-          unoptimized
-          priority
-        />
-        <div className="absolute inset-x-0 bottom-0 bg-foreground/95 px-8 py-6 text-background lg:px-10">
-          <p className="font-graffiti text-[clamp(3.5rem,7vw,6rem)] leading-none">
-            VK Store
-          </p>
+        <div className="relative hidden min-h-full overflow-hidden border-l-2 border-foreground bg-foreground md:block">
+          <Image
+            src={loginImage.url}
+            alt="VK Store"
+            fill
+            sizes="(min-width: 1024px) 48vw, 50vw"
+            className={`object-cover object-center opacity-95 ${
+              loginImage.grayscale ?? true ? "grayscale" : ""
+            }`}
+            unoptimized
+            priority
+          />
         </div>
       </div>
     </div>

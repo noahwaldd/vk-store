@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { createOrderFromCart } from "@/lib/checkout";
 import { findCouponByCode, isCouponOperational } from "@/lib/coupons";
 import { prisma } from "@/lib/db/prisma";
+import { formatOrderReference } from "@/lib/orders/reference";
 import { buildWhatsAppOrderUrl } from "@/lib/orders/whatsapp";
 import { getCouponsSetting } from "@/lib/site-settings";
 import { checkoutSchema, type CheckoutFormValues } from "@/schemas/checkout-schema";
@@ -13,7 +14,7 @@ export type CheckoutActionResult = {
   ok: boolean;
   message: string;
   whatsappUrl?: string | null;
-  orderId?: string | null;
+  orderCode?: string | null;
 };
 
 function cleanOptional(value?: string) {
@@ -117,9 +118,10 @@ export async function createCheckoutAction(
         phone: parsed.data.phone,
       },
     });
+    const orderCode = formatOrderReference(order.orderId);
 
     const whatsappUrl = buildWhatsAppOrderUrl({
-      orderId: order.orderId,
+      orderReference: orderCode,
       items: order.items,
       total: order.total,
       couponCode: order.coupon?.coupon.code,
@@ -142,7 +144,7 @@ export async function createCheckoutAction(
       ok: true,
       message: "Pedido criado. Vamos abrir o WhatsApp para finalizar.",
       whatsappUrl,
-      orderId: order.orderId,
+      orderCode,
     };
   } catch (error) {
     return {
