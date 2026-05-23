@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Inter, Bebas_Neue, Bangers } from "next/font/google";
 import { Toaster } from "sonner";
 
@@ -61,6 +62,55 @@ export default async function RootLayout({
         className={`${inter.variable} ${bebas.variable} ${badaboom.variable} min-h-screen font-sans`}
         suppressHydrationWarning
       >
+        <Script id="geolocation-fallback" strategy="beforeInteractive">
+          {`
+            if (typeof window !== "undefined") {
+              var geolocationFallback = {
+                getCurrentPosition: function (_success, error) {
+                  if (typeof error === "function") {
+                    error({
+                      code: 2,
+                      message: "Geolocation unavailable in this browser.",
+                      PERMISSION_DENIED: 1,
+                      POSITION_UNAVAILABLE: 2,
+                      TIMEOUT: 3
+                    });
+                  }
+                },
+                watchPosition: function (_success, error) {
+                  if (typeof error === "function") {
+                    error({
+                      code: 2,
+                      message: "Geolocation unavailable in this browser.",
+                      PERMISSION_DENIED: 1,
+                      POSITION_UNAVAILABLE: 2,
+                      TIMEOUT: 3
+                    });
+                  }
+
+                  return 0;
+                },
+                clearWatch: function () {}
+              };
+
+              try {
+                if (!window.navigator) {
+                  Object.defineProperty(window, "navigator", {
+                    configurable: true,
+                    value: {}
+                  });
+                }
+
+                if (!("geolocation" in window.navigator)) {
+                  Object.defineProperty(window.navigator, "geolocation", {
+                    configurable: true,
+                    value: geolocationFallback
+                  });
+                }
+              } catch (_error) {}
+            }
+          `}
+        </Script>
         <Header />
         <CouponDrawer coupons={coupons} />
         <main className="flex-1">{children}</main>

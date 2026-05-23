@@ -7,25 +7,6 @@ function itemKey(item: CartItem) {
   return `${item.product.id}:${item.variation ?? "default"}`;
 }
 
-function getAllowedVariations(variations: unknown) {
-  if (!Array.isArray(variations)) {
-    return [];
-  }
-
-  return variations.flatMap((variation) => {
-    if (
-      variation &&
-      typeof variation === "object" &&
-      "values" in variation &&
-      Array.isArray(variation.values)
-    ) {
-      return variation.values.map((value: unknown) => String(value));
-    }
-
-    return [];
-  });
-}
-
 export async function syncCartItemsAction(items: CartItem[]) {
   const requestedItems = items
     .map((item) => ({
@@ -58,22 +39,15 @@ export async function syncCartItemsAction(items: CartItem[]) {
     },
   });
   const productsById = new Map(products.map((product) => [product.id, product]));
+  const removedCount = requestedItems.filter(
+    (item) => !productsById.has(item.productId),
+  ).length;
   const syncedItems = new Map<string, CartItem>();
 
   for (const requested of requestedItems) {
     const product = productsById.get(requested.productId);
 
     if (!product) {
-      continue;
-    }
-
-    const allowedVariations = getAllowedVariations(product.variations);
-
-    if (
-      requested.variation &&
-      allowedVariations.length > 0 &&
-      !allowedVariations.includes(requested.variation)
-    ) {
       continue;
     }
 
@@ -123,6 +97,6 @@ export async function syncCartItemsAction(items: CartItem[]) {
 
   return {
     items: synced,
-    removedCount: requestedItems.length - synced.length,
+    removedCount,
   };
 }

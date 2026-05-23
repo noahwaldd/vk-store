@@ -99,6 +99,7 @@ export function RecentlyViewedProducts({
           const image = product.images[0]?.url;
           const variationSummary = getVariationSummary(product);
           const requiresChoice = Boolean(variationSummary);
+          const discounted = hasDiscount(product);
 
           return (
             <article
@@ -126,9 +127,6 @@ export function RecentlyViewedProducts({
                     className="object-cover transition-transform duration-300 hover:scale-105"
                   />
                 ) : null}
-                {hasDiscount(product) ? (
-                  <Badge className="offer-badge absolute left-2 top-2">Oferta</Badge>
-                ) : null}
               </Link>
 
               <div className={compact ? "min-w-0" : "grid gap-3 p-3"}>
@@ -136,6 +134,7 @@ export function RecentlyViewedProducts({
                   <Badge variant="muted">
                     {product.category?.name ?? "Produto"}
                   </Badge>
+                  {discounted ? <Badge className="offer-badge">Oferta</Badge> : null}
                   <Badge variant={product.stock > 0 ? "outline" : "secondary"}>
                     {product.stock > 0 ? `${product.stock} em estoque` : "Esgotado"}
                   </Badge>
@@ -162,7 +161,7 @@ export function RecentlyViewedProducts({
                 </div>
 
                 <div>
-                  {hasDiscount(product) ? (
+                  {discounted ? (
                     <p className="text-xs text-muted-foreground line-through">
                       {formatCurrency(product.compare_at_price ?? 0)}
                     </p>
