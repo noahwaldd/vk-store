@@ -320,6 +320,7 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
       variations: firstVariation?.values.join(", ") ?? "",
       variation_label: firstVariation?.label ?? "Tamanho",
       featured: product?.featured ?? false,
+      is_offer: product?.is_offer ?? false,
     },
   });
 
@@ -598,6 +599,10 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
 
     if (values.featured) {
       formData.append("featured", "on");
+    }
+
+    if (values.is_offer) {
+      formData.append("is_offer", "on");
     }
 
     galleryImages.forEach((image) => {
@@ -1067,6 +1072,20 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
           <label className="flex items-center gap-3 rounded-none border-2 border-border bg-muted/40 p-3 text-sm font-medium">
             <input type="checkbox" className="size-4 accent-primary" {...register("featured")} />
             Produto em destaque na home
+          </label>
+          <label className="flex items-start gap-3 rounded-none border-2 border-border bg-muted/40 p-3 text-sm font-medium">
+            <input
+              type="checkbox"
+              className="mt-0.5 size-4 accent-primary"
+              {...register("is_offer")}
+            />
+            <span>
+              <span className="block">Marcar como oferta especial</span>
+              <span className="mt-1 block text-xs font-semibold text-muted-foreground">
+                Use para campanhas e para aparecer em Ver ofertas. Desconto comum usa apenas o
+                preço original.
+              </span>
+            </span>
           </label>
         </CompactSection>
 

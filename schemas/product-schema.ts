@@ -75,6 +75,7 @@ export const productSchema = z
       .optional(),
     variation_groups: z.string().max(3000, "Use uma lista menor de variações.").optional(),
     featured: z.coerce.boolean().optional(),
+    is_offer: z.coerce.boolean().optional(),
   })
   .superRefine((value, context) => {
     if (
@@ -85,6 +86,14 @@ export const productSchema = z
         code: "custom",
         path: ["compare_at_price"],
         message: "O preço original deve ser maior que o preço atual.",
+      });
+    }
+
+    if (value.is_offer && value.compare_at_price === undefined) {
+      context.addIssue({
+        code: "custom",
+        path: ["compare_at_price"],
+        message: "Para marcar como oferta, informe um preço original maior que o atual.",
       });
     }
   });

@@ -134,7 +134,7 @@ export function CouponManager({ coupons, categories, action }: CouponManagerProp
         <div>
           <h2 className="text-xl font-black">Cupons cadastrados</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Controle validade, limites de uso, regras por categoria e bloqueio de itens em promoção.
+            Controle validade, limites de uso, regras por categoria e bloqueio de itens com desconto.
           </p>
         </div>
         <Button type="button" variant="outline" onClick={() => setItems((current) => [...current, createCoupon()])}>
@@ -342,7 +342,7 @@ export function CouponManager({ coupons, categories, action }: CouponManagerProp
                       })
                     }
                   />
-                  Excluir produtos em promoção
+                  Excluir produtos com desconto
                 </label>
               </div>
 

@@ -112,6 +112,7 @@ model Product {
   stock            Int            @default(0)
   variations       Json           @default("[]")
   featured         Boolean        @default(false)
+  is_offer         Boolean        @default(false)
   deleted_at       DateTime?      @db.Timestamptz(6)
   created_at       DateTime       @default(now()) @db.Timestamptz(6)
   updated_at       DateTime       @default(now()) @updatedAt @db.Timestamptz(6)
@@ -122,6 +123,7 @@ model Product {
   @@index([category_id], map: "products_category_id_idx")
   @@index([deleted_at], map: "products_deleted_at_idx")
   @@index([featured, created_at], map: "products_featured_created_at_idx")
+  @@index([is_offer, created_at], map: "products_is_offer_created_at_idx")
   @@index([category_id, created_at], map: "products_category_created_at_idx")
   @@map("products")
 }

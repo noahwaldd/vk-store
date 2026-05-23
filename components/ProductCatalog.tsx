@@ -15,6 +15,7 @@ type ProductCatalogProps = {
   query?: string;
   category?: string;
   sort?: ProductSort;
+  offerOnly?: boolean;
 };
 
 function buildPageHref({
@@ -22,11 +23,13 @@ function buildPageHref({
   query,
   category,
   sort,
+  offerOnly,
 }: {
   page: number;
   query?: string;
   category?: string;
   sort?: ProductSort;
+  offerOnly?: boolean;
 }) {
   const params = new URLSearchParams();
 
@@ -40,6 +43,10 @@ function buildPageHref({
 
   if (sort && sort !== "recent") {
     params.set("ordenar", sort);
+  }
+
+  if (offerOnly) {
+    params.set("oferta", "1");
   }
 
   if (page > 1) {
@@ -56,6 +63,7 @@ export function ProductCatalog({
   query = "",
   category = "todos",
   sort = "recent",
+  offerOnly = false,
 }: ProductCatalogProps) {
   const { products, total, page, totalPages } = productPage;
   const previousPage = Math.max(page - 1, 1);
@@ -89,6 +97,7 @@ export function ProductCatalog({
                   query,
                   category: item.slug,
                   sort,
+                  offerOnly,
                 })}
               >
                 {item.label}
@@ -101,7 +110,7 @@ export function ProductCatalog({
       <form
         action="/produtos"
         data-animate
-        className="grid gap-3 rounded-none border-2 border-foreground bg-background p-3 md:grid-cols-[1fr_190px_190px_auto]"
+        className="grid gap-3 rounded-none border-2 border-foreground bg-background p-3 md:grid-cols-[1fr_190px_190px_130px_auto]"
       >
         <label className="relative">
           <span className="sr-only">Buscar por nome</span>
@@ -144,6 +153,17 @@ export function ProductCatalog({
           </select>
         </label>
 
+        <label className="focus-ring flex h-10 items-center gap-2 rounded-none border-2 border-border bg-background px-3 text-sm font-bold shadow-xs">
+          <input
+            type="checkbox"
+            name="oferta"
+            value="1"
+            defaultChecked={offerOnly}
+            className="size-4 accent-primary"
+          />
+          Ofertas
+        </label>
+
         <Button type="submit">Aplicar</Button>
       </form>
 
@@ -166,7 +186,7 @@ export function ProductCatalog({
             </Button>
           ) : (
             <Button asChild variant="outline">
-              <Link href={buildPageHref({ page: previousPage, query, category, sort })}>
+              <Link href={buildPageHref({ page: previousPage, query, category, sort, offerOnly })}>
                 Anterior
               </Link>
             </Button>
@@ -180,7 +200,7 @@ export function ProductCatalog({
             </Button>
           ) : (
             <Button asChild variant="outline">
-              <Link href={buildPageHref({ page: nextPage, query, category, sort })}>
+              <Link href={buildPageHref({ page: nextPage, query, category, sort, offerOnly })}>
                 Próxima
               </Link>
             </Button>

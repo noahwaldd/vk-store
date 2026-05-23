@@ -64,6 +64,7 @@ export async function syncCartItemsAction(items: CartItem[]) {
         compare_at_price: product.compare_at_price
           ? Number(product.compare_at_price)
           : null,
+        is_offer: product.is_offer,
         images: product.images.map((image) => ({
           id: image.id,
           product_id: image.product_id,

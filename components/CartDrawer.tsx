@@ -83,6 +83,7 @@ export function CartDrawer({ coupons }: CartDrawerProps) {
                 const hasDiscount =
                   item.product.compare_at_price &&
                   item.product.compare_at_price > item.product.price;
+                const isOffer = Boolean(hasDiscount && item.product.is_offer);
 
                 return (
                   <div
@@ -114,7 +115,10 @@ export function CartDrawer({ coupons }: CartDrawerProps) {
                       ) : null}
                       {hasDiscount || isUnavailable ? (
                         <div className="mt-2 flex flex-wrap items-center gap-1">
-                          {hasDiscount ? <Badge className="offer-badge">Oferta</Badge> : null}
+                          {isOffer ? <Badge className="offer-badge">Oferta</Badge> : null}
+                          {hasDiscount && !isOffer ? (
+                            <Badge variant="outline">Desconto</Badge>
+                          ) : null}
                           {isUnavailable ? (
                             <span className="inline-flex border-2 border-destructive px-2 py-1 text-[11px] font-black uppercase text-destructive">
                               Esgotado

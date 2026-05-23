@@ -11,6 +11,7 @@ export type CartItem = {
     | "images"
     | "category_id"
     | "compare_at_price"
+    | "is_offer"
   >;
   quantity: number;
   variation?: string;

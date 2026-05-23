@@ -16,6 +16,7 @@ export type RecentlyViewedProduct = Pick<
   | "category"
   | "variations"
   | "featured"
+  | "is_offer"
 >;
 
 const recentlyViewedKey = "vkstore-recently-viewed";
@@ -35,6 +36,7 @@ function toRecentlyViewedProduct(product: Product): RecentlyViewedProduct {
     category: product.category,
     variations: product.variations,
     featured: product.featured,
+    is_offer: product.is_offer,
   };
 }
 
@@ -85,6 +87,7 @@ function parseRecentlyViewed(value: string | null): RecentlyViewedProduct[] {
           category: product.category ?? null,
           variations: Array.isArray(product.variations) ? product.variations : [],
           featured: Boolean(product.featured),
+          is_offer: Boolean(product.is_offer),
         },
       ];
     });

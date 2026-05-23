@@ -16,6 +16,7 @@ export function parseProductPayload(formData: FormData): ProductPayload {
     variation_label: formData.get("variation_label") || "",
     variation_groups: formData.get("variation_groups") || "",
     featured: formData.get("featured") === "on",
+    is_offer: formData.get("is_offer") === "on",
   };
 
   return productSchema.parse(payload);
@@ -323,6 +324,7 @@ export async function createProduct(formData: FormData) {
       stock: payload.stock,
       variations: toVariationPayload(payload),
       featured: Boolean(payload.featured),
+      is_offer: Boolean(payload.is_offer),
       images: images.length
         ? {
             create: images.map((image, index) => ({
@@ -360,6 +362,7 @@ export async function updateProduct(id: string, formData: FormData) {
       stock: payload.stock,
       variations: toVariationPayload(payload),
       featured: Boolean(payload.featured),
+      is_offer: Boolean(payload.is_offer),
     },
   });
 

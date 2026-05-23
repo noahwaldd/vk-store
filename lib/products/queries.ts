@@ -9,6 +9,7 @@ export type ProductSort = "recent" | "price-asc" | "price-desc" | "name-asc";
 export type ProductQueryOptions = {
   includeDeleted?: boolean;
   featuredOnly?: boolean;
+  offerOnly?: boolean;
   page?: number;
   limit?: number;
   query?: string;
@@ -86,6 +87,7 @@ export function normalizeProduct(row: ProductWithRelations): Product {
       position: image.position,
     })),
     featured: row.featured,
+    is_offer: row.is_offer,
     deleted_at: normalizeDate(row.deleted_at),
     created_at: normalizeDate(row.created_at) ?? undefined,
     updated_at: normalizeDate(row.updated_at) ?? undefined,
@@ -110,6 +112,10 @@ function buildProductWhere(options: ProductQueryOptions) {
 
   if (options.featuredOnly) {
     and.push({ featured: true });
+  }
+
+  if (options.offerOnly) {
+    and.push({ is_offer: true });
   }
 
   if (query) {
@@ -213,6 +219,10 @@ export async function getProductsPage(
 
 export async function getFeaturedProducts() {
   return getProducts({ featuredOnly: true, limit: 8 });
+}
+
+export async function getOfferProducts(limit = 12) {
+  return getProducts({ offerOnly: true, limit });
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {

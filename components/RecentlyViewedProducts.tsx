@@ -100,6 +100,7 @@ export function RecentlyViewedProducts({
           const variationSummary = getVariationSummary(product);
           const requiresChoice = Boolean(variationSummary);
           const discounted = hasDiscount(product);
+          const isOffer = Boolean(discounted && product.is_offer);
 
           return (
             <article
@@ -134,7 +135,10 @@ export function RecentlyViewedProducts({
                   <Badge variant="muted">
                     {product.category?.name ?? "Produto"}
                   </Badge>
-                  {discounted ? <Badge className="offer-badge">Oferta</Badge> : null}
+                  {isOffer ? <Badge className="offer-badge">Oferta</Badge> : null}
+                  {discounted && !isOffer ? (
+                    <Badge variant="outline">Desconto</Badge>
+                  ) : null}
                   <Badge variant={product.stock > 0 ? "outline" : "secondary"}>
                     {product.stock > 0 ? `${product.stock} em estoque` : "Esgotado"}
                   </Badge>

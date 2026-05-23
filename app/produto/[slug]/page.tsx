@@ -59,6 +59,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   ]);
   const hasDiscount =
     product.compare_at_price && product.compare_at_price > product.price;
+  const isOffer = Boolean(hasDiscount && product.is_offer);
 
   return (
     <div className="mx-auto w-[min(calc(100%_-_1.5rem),1120px)] py-4 sm:w-[min(calc(100%_-_2rem),1120px)]">
@@ -77,7 +78,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <section className="min-w-0 rounded-none border-2 border-foreground bg-background p-4 lg:min-h-[640px] lg:p-5">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="muted">{product.category?.name ?? "Produto"}</Badge>
-            {hasDiscount ? <Badge className="offer-badge">Oferta</Badge> : null}
+            {isOffer ? <Badge className="offer-badge">Oferta</Badge> : null}
+            {hasDiscount && !isOffer ? <Badge variant="outline">Desconto</Badge> : null}
             <Badge variant={product.stock > 0 ? "outline" : "secondary"}>
               {product.stock > 0 ? "Em estoque" : "Esgotado"}
             </Badge>

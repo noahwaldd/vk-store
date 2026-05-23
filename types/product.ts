@@ -35,6 +35,7 @@ export type Product = {
   variations: ProductVariation[];
   images: ProductImage[];
   featured: boolean;
+  is_offer: boolean;
   deleted_at?: string | null;
   created_at?: string;
   updated_at?: string;
@@ -49,4 +50,5 @@ export type ProductInput = {
   stock: number;
   variations?: ProductVariation[];
   featured?: boolean;
+  is_offer?: boolean;
 };

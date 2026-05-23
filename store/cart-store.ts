@@ -37,6 +37,7 @@ function toCartProduct(product: Product | CartProduct): CartProduct {
     images: product.images,
     category_id: product.category_id,
     compare_at_price: product.compare_at_price,
+    is_offer: Boolean(product.is_offer),
   };
 }
 

@@ -58,7 +58,7 @@ export const defaultOfferSection: OfferSectionSetting = {
   description:
     "Peças, fragrâncias e acessórios com preço competitivo por tempo limitado.",
   buttonLabel: "Ver ofertas",
-  href: "/produtos?ordenar=promocoes",
+  href: "/produtos?oferta=1",
 };
 
 export const defaultPromoBanner: PromoBannerSetting = {
@@ -133,6 +133,10 @@ function readStringField(
 }
 
 function normalizeOfferHref(href: string) {
+  if (href === "/produtos?ordenar=promocoes" || href === "/produtos") {
+    return defaultOfferSection.href;
+  }
+
   return href.startsWith("/") && !href.startsWith("//")
     ? href
     : defaultOfferSection.href;

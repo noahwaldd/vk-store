@@ -13,6 +13,7 @@ type ProductsPageProps = {
     q?: string;
     categoria?: string;
     ordenar?: ProductSort;
+    oferta?: string;
     page?: string;
   }>;
 };
@@ -20,9 +21,13 @@ type ProductsPageProps = {
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   const params = await searchParams;
   const page = Number(params.page ?? "1");
-  const sort = params.ordenar ?? "recent";
+  const sortOptions: ProductSort[] = ["recent", "price-asc", "price-desc", "name-asc"];
+  const sort = sortOptions.includes(params.ordenar as ProductSort)
+    ? (params.ordenar as ProductSort)
+    : "recent";
   const category = params.categoria ?? "todos";
   const query = params.q ?? "";
+  const offerOnly = params.oferta === "1" || params.oferta === "true";
   const [productPage, categories] = await Promise.all([
     getProductsPage({
       page: Number.isInteger(page) ? page : 1,
@@ -30,6 +35,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       query,
       category,
       sort,
+      offerOnly,
     }),
     getCategories(),
   ]);
@@ -38,9 +44,13 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     <div className="container-shell py-10">
       <div className="mb-8">
         <p className="text-sm font-bold uppercase text-primary">Catálogo</p>
-        <h1 className="mt-2 text-3xl font-black sm:text-4xl">Produtos</h1>
+        <h1 className="mt-2 text-3xl font-black sm:text-4xl">
+          {offerOnly ? "Ofertas" : "Produtos"}
+        </h1>
         <p data-animate className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-          Busque por nome, filtre por categoria e ordene por preço sem sair da página.
+          {offerOnly
+            ? "Produtos marcados como oferta especial pela loja."
+            : "Busque por nome, filtre por categoria e ordene por preço sem sair da página."}
         </p>
       </div>
 
@@ -50,6 +60,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         query={query}
         category={category}
         sort={sort}
+        offerOnly={offerOnly}
       />
     </div>
   );

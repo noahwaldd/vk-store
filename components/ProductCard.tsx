@@ -29,6 +29,7 @@ export function ProductCard({ product }: ProductCardProps) {
     .join(" • ");
   const hasDiscount =
     product.compare_at_price && product.compare_at_price > product.price;
+  const isOffer = Boolean(hasDiscount && product.is_offer);
 
   return (
     <Card data-animate className="group flex h-full flex-col overflow-hidden p-0">
@@ -48,7 +49,7 @@ export function ProductCard({ product }: ProductCardProps) {
               Sem imagem
             </div>
           )}
-          {hasDiscount ? (
+          {isOffer ? (
             <Badge className="offer-badge absolute left-3 top-3">
               Oferta
             </Badge>
@@ -88,6 +89,11 @@ export function ProductCard({ product }: ProductCardProps) {
               {product.stock > 0 ? `${product.stock} un.` : "Esgotado"}
             </Badge>
           </div>
+          {hasDiscount && !isOffer ? (
+            <Badge variant="outline" className="w-fit">
+              Desconto
+            </Badge>
+          ) : null}
 
           {product.stock > 0 ? (
             <Button asChild className="add-cart-cta w-full">

@@ -1,6 +1,7 @@
 export {
   getCategories,
   getFeaturedProducts,
+  getOfferProducts,
   getProductById,
   getProductBySlug,
   getRelatedProducts,

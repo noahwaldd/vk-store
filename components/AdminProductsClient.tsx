@@ -27,6 +27,7 @@ type AdminProductsClientProps = {
 type StatusFilter = "all" | "active" | "deleted";
 type StockFilter = "all" | "available" | "low" | "out";
 type FeaturedFilter = "all" | "featured" | "normal";
+type OfferFilter = "all" | "offer" | "discount" | "regular";
 type SortOption =
   | "created-desc"
   | "name-asc"
@@ -47,6 +48,7 @@ export function AdminProductsClient({
   const [status, setStatus] = useState<StatusFilter>("all");
   const [stock, setStock] = useState<StockFilter>("all");
   const [featured, setFeatured] = useState<FeaturedFilter>("all");
+  const [offer, setOffer] = useState<OfferFilter>("all");
   const [sort, setSort] = useState<SortOption>("created-desc");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
@@ -75,10 +77,19 @@ export function AdminProductsClient({
           (stock === "available" && product.stock > 5) ||
           (stock === "low" && product.stock > 0 && product.stock <= 5) ||
           (stock === "out" && product.stock === 0);
+        const hasDiscount = Boolean(
+          product.compare_at_price && product.compare_at_price > product.price,
+        );
+        const isOffer = hasDiscount && product.is_offer;
         const matchesFeatured =
           featured === "all" ||
           (featured === "featured" && product.featured) ||
           (featured === "normal" && !product.featured);
+        const matchesOffer =
+          offer === "all" ||
+          (offer === "offer" && isOffer) ||
+          (offer === "discount" && hasDiscount && !isOffer) ||
+          (offer === "regular" && !hasDiscount);
         const matchesMinPrice = minPriceValue === null || product.price >= minPriceValue;
         const matchesMaxPrice = maxPriceValue === null || product.price <= maxPriceValue;
         const matchesMinStock = minStockValue === null || product.stock >= minStockValue;
@@ -90,6 +101,7 @@ export function AdminProductsClient({
           matchesStatus &&
           matchesStock &&
           matchesFeatured &&
+          matchesOffer &&
           matchesMinPrice &&
           matchesMaxPrice &&
           matchesMinStock &&
@@ -122,6 +134,7 @@ export function AdminProductsClient({
   }, [
     categoryId,
     featured,
+    offer,
     maxPrice,
     maxStock,
     minPrice,
@@ -141,6 +154,13 @@ export function AdminProductsClient({
   const outStockCount = products.filter(
     (product) => !product.deleted_at && product.stock === 0,
   ).length;
+  const offerCount = products.filter(
+    (product) =>
+      !product.deleted_at &&
+      product.is_offer &&
+      product.compare_at_price &&
+      product.compare_at_price > product.price,
+  ).length;
 
   function clearFilters() {
     setQuery("");
@@ -148,6 +168,7 @@ export function AdminProductsClient({
     setStatus("all");
     setStock("all");
     setFeatured("all");
+    setOffer("all");
     setSort("created-desc");
     setMinPrice("");
     setMaxPrice("");
@@ -170,9 +191,10 @@ export function AdminProductsClient({
 
   return (
     <div className="grid gap-5">
-      <div className="grid gap-3 md:grid-cols-4">
+      <div className="grid gap-3 md:grid-cols-5">
         {[
           { label: "Ativos", value: activeCount },
+          { label: "Ofertas", value: offerCount },
           { label: "Removidos", value: deletedCount },
           { label: "Estoque baixo", value: lowStockCount },
           { label: "Sem estoque", value: outStockCount },
@@ -234,6 +256,16 @@ export function AdminProductsClient({
             <option value="all">Todos os destaques</option>
             <option value="featured">Em destaque</option>
             <option value="normal">Sem destaque</option>
+          </select>
+          <select
+            value={offer}
+            onChange={(event) => setOffer(event.target.value as OfferFilter)}
+            className="focus-ring h-10 rounded-none border-2 border-border bg-background px-3 text-sm shadow-xs"
+          >
+            <option value="all">Ofertas e descontos</option>
+            <option value="offer">Só ofertas</option>
+            <option value="discount">Desconto comum</option>
+            <option value="regular">Sem desconto</option>
           </select>
           <select
             value={sort}
@@ -314,6 +346,10 @@ export function AdminProductsClient({
               <tbody className="divide-y">
                 {filteredProducts.map((product) => {
                   const image = product.images[0]?.url;
+                  const hasDiscount = Boolean(
+                    product.compare_at_price && product.compare_at_price > product.price,
+                  );
+                  const isOffer = hasDiscount && product.is_offer;
 
                   return (
                     <tr key={product.id} className="bg-background">
@@ -354,9 +390,15 @@ export function AdminProductsClient({
                         </Badge>
                       </td>
                       <td className="px-4 py-3">
-                        <Badge variant={product.featured ? "default" : "outline"}>
-                          {product.featured ? "Destaque" : "Normal"}
-                        </Badge>
+                        <div className="flex flex-wrap gap-1">
+                          {isOffer ? <Badge className="offer-badge">Oferta</Badge> : null}
+                          {hasDiscount && !isOffer ? (
+                            <Badge variant="outline">Desconto</Badge>
+                          ) : null}
+                          <Badge variant={product.featured ? "default" : "outline"}>
+                            {product.featured ? "Destaque" : "Normal"}
+                          </Badge>
+                        </div>
                       </td>
                       <td className="px-4 py-3">
                         <Badge variant={product.deleted_at ? "outline" : "muted"}>

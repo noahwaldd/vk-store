@@ -123,7 +123,7 @@ export function OfferSectionManager({
             id="offer-href"
             name="href"
             value={href}
-            placeholder="/produtos?ordenar=promocoes"
+            placeholder="/produtos?oferta=1"
             onChange={(event) => setHref(event.target.value)}
           />
         </div>
