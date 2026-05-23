@@ -26,6 +26,7 @@ import { Header } from "@/components/Header";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { CouponDrawer } from "@/components/CouponDrawer";
 import { StorefrontMotion } from "@/components/StorefrontMotion";
+import { HideOnAuthRoutes } from "@/components/RouteVisibility";
 import { getCouponsSetting } from "@/lib/site-settings";
 import "./globals.css";
 
@@ -111,11 +112,15 @@ export default async function RootLayout({
             }
           `}
         </Script>
-        <Header />
-        <CouponDrawer coupons={coupons} />
+        <HideOnAuthRoutes>
+          <Header />
+          <CouponDrawer coupons={coupons} />
+        </HideOnAuthRoutes>
         <main className="flex-1">{children}</main>
-        <Footer />
-        <FloatingActions />
+        <HideOnAuthRoutes>
+          <Footer />
+          <FloatingActions />
+        </HideOnAuthRoutes>
         <CookieConsentBanner />
         <StorefrontMotion />
         <Toaster richColors position="bottom-left" offset={20} visibleToasts={3} />

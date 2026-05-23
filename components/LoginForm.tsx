@@ -32,7 +32,6 @@ export function LoginForm({
   const [mode, setMode] = useState<"login" | "register">("login");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "556292338635";
   const displayTitle = mode === "register" ? "Criar conta" : title;
   const displayDescription =
     mode === "register"
@@ -277,15 +276,6 @@ export function LoginForm({
             ? "Novo por aqui? Use Criar conta."
             : "Já tem conta? Use Entrar."}
         </span>
-        Dúvidas?{" "}
-        <a
-          href={`https://wa.me/${whatsappNumber}`}
-          target="_blank"
-          rel="noreferrer"
-          className="text-foreground underline"
-        >
-          Fale conosco
-        </a>
       </div>
     </div>
   );

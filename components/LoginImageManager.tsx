@@ -70,7 +70,7 @@ export function LoginImageManager({
           </h2>
           <p className="mt-1 text-sm leading-5 text-muted-foreground">
             Use uma foto vertical, clara e com o produto ou modelo bem visível.
-            Recomendado: 1200 x 1500 px, até 5MB.
+            Recomendado: 1600 x 2000 px, até 5MB.
           </p>
         </div>
 

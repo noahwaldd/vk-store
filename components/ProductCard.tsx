@@ -32,9 +32,12 @@ export function ProductCard({ product }: ProductCardProps) {
   const isOffer = Boolean(hasDiscount && product.is_offer);
 
   return (
-    <Card data-animate className="group flex h-full flex-col overflow-hidden p-0">
-      <Link href={`/produto/${product.slug}`} className="block">
-        <div className="relative aspect-[4/5] overflow-hidden bg-muted">
+    <Card
+      data-animate
+      className="group grid h-full grid-cols-[112px_minmax(0,1fr)] overflow-hidden p-0 sm:flex sm:flex-col"
+    >
+      <Link href={`/produto/${product.slug}`} className="block min-w-0">
+        <div className="relative aspect-[3/4] overflow-hidden bg-muted sm:aspect-[4/5]">
           {image ? (
             <Image
               src={image}
@@ -57,14 +60,14 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
       </Link>
 
-      <div className="flex flex-1 flex-col gap-2.5 p-3">
-        <div className="min-h-[5.75rem]">
+      <div className="flex min-w-0 flex-1 flex-col gap-2 p-2.5 sm:gap-2.5 sm:p-3">
+        <div className="min-w-0 sm:min-h-[5.75rem]">
           <p className="text-xs font-semibold uppercase text-muted-foreground">
             {product.category?.name ?? "Produto"}
           </p>
           <Link
             href={`/produto/${product.slug}`}
-            className="mt-1 line-clamp-2 font-semibold hover:text-primary"
+            className="mt-1 line-clamp-2 text-sm font-semibold leading-snug hover:text-primary sm:text-base"
           >
             {product.name}
           </Link>
@@ -75,15 +78,15 @@ export function ProductCard({ product }: ProductCardProps) {
           ) : null}
         </div>
 
-        <div className="mt-auto grid gap-2.5">
-          <div className="flex items-end justify-between gap-3">
+        <div className="mt-auto grid gap-2 sm:gap-2.5">
+          <div className="flex flex-wrap items-end justify-between gap-2 sm:gap-3">
             <div>
               {hasDiscount ? (
                 <p className="text-xs text-muted-foreground line-through">
                   {formatCurrency(product.compare_at_price ?? 0)}
                 </p>
               ) : null}
-              <p className="text-base font-black">{formatCurrency(product.price)}</p>
+              <p className="text-sm font-black sm:text-base">{formatCurrency(product.price)}</p>
             </div>
             <Badge variant={product.stock > 0 ? "muted" : "outline"}>
               {product.stock > 0 ? `${product.stock} un.` : "Esgotado"}
@@ -96,14 +99,14 @@ export function ProductCard({ product }: ProductCardProps) {
           ) : null}
 
           {product.stock > 0 ? (
-            <Button asChild className="add-cart-cta w-full">
+            <Button asChild size="sm" className="add-cart-cta w-full sm:h-10">
               <Link href={`/produto/${product.slug}`}>
                 <ShoppingCart />
                 Comprar
               </Link>
             </Button>
           ) : (
-            <Button disabled className="add-cart-cta w-full">
+            <Button disabled size="sm" className="add-cart-cta w-full sm:h-10">
               <ShoppingCart />
               Esgotado
             </Button>
