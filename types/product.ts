@@ -20,6 +20,7 @@ export type ProductImage = {
 export type ProductVariation = {
   label: string;
   values: string[];
+  stockByValue?: Record<string, number>;
 };
 
 export type Product = {

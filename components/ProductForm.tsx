@@ -67,6 +67,7 @@ type VariationDraft = {
   id: string;
   label: string;
   values: string;
+  stockByValue: Record<string, string>;
 };
 
 const sizePresets = [
@@ -173,11 +174,18 @@ function createVariationDraft(
   label = "Variação",
   values: readonly string[] = [],
   id = createVariationDraftId(),
+  stockByValue: Record<string, number> = {},
 ): VariationDraft {
   return {
     id,
     label,
     values: values.join(", "),
+    stockByValue: Object.fromEntries(
+      values.map((value) => [
+        value,
+        stockByValue[value] === undefined ? "" : String(stockByValue[value]),
+      ]),
+    ),
   };
 }
 
@@ -213,7 +221,29 @@ function normalizeVariationDrafts(groups: VariationDraft[]) {
 
     seenLabels.add(labelKey);
 
-    return [{ label, values }];
+    const stockByValue = values.reduce<Record<string, number>>((stockMap, value) => {
+      const rawStock = group.stockByValue[value];
+
+      if (rawStock === undefined || rawStock === "") {
+        return stockMap;
+      }
+
+      const stock = Number(rawStock);
+
+      if (Number.isFinite(stock)) {
+        stockMap[value] = Math.max(0, Math.floor(stock));
+      }
+
+      return stockMap;
+    }, {});
+
+    return [
+      {
+        label,
+        values,
+        ...(Object.keys(stockByValue).length ? { stockByValue } : {}),
+      },
+    ];
   });
 }
 
@@ -277,7 +307,12 @@ function buildInitialVariationGroups(product?: Product): VariationDraft[] {
   }
 
   return variations.map((variation, index) =>
-    createVariationDraft(variation.label, variation.values, `variation-initial-${index}`),
+    createVariationDraft(
+      variation.label,
+      variation.values,
+      `variation-initial-${index}`,
+      variation.stockByValue,
+    ),
   );
 }
 
@@ -545,10 +580,14 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
         const mergedValues = getVariationValues(
           [...getVariationValues(group.values), ...nextValues].join(", "),
         );
+        const stockByValue = Object.fromEntries(
+          mergedValues.map((value) => [value, group.stockByValue[value] ?? ""]),
+        );
 
         return {
           ...group,
           values: mergedValues.join(", "),
+          stockByValue,
         };
       }),
     );
@@ -569,8 +608,33 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
           values: getVariationValues(group.values)
             .filter((item) => item.toLocaleLowerCase("pt-BR") !== valueKey)
             .join(", "),
+          stockByValue: Object.fromEntries(
+            Object.entries(group.stockByValue).filter(
+              ([key]) => key.toLocaleLowerCase("pt-BR") !== valueKey,
+            ),
+          ),
         };
       }),
+    );
+  }
+
+  function updateVariationValueStock(
+    groupId: string,
+    value: string,
+    stock: string,
+  ) {
+    setVariationGroups((groups) =>
+      groups.map((group) =>
+        group.id === groupId
+          ? {
+              ...group,
+              stockByValue: {
+                ...group.stockByValue,
+                [value]: stock.replace(/\D/g, ""),
+              },
+            }
+          : group,
+      ),
     );
   }
 
@@ -727,6 +791,7 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
         <CompactSection
           title="Dados do produto"
           description="Nome e descrição ficam visíveis na vitrine."
+          defaultOpen={!product}
         >
         <div className="grid gap-2">
           <Label htmlFor="name">Nome</Label>
@@ -751,6 +816,7 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
         <CompactSection
           title="Preço e estoque"
           description="Defina valores e se o produto está disponível para compra."
+          defaultOpen={!product}
         >
         <div className="grid gap-4 md:grid-cols-3">
           <div className="grid gap-2">
@@ -814,6 +880,10 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
               disabled={!hasStockEnabled}
               {...register("stock")}
             />
+            <p className="text-xs leading-5 text-muted-foreground">
+              Se informar estoque nas opções de variação, o checkout usa o estoque da opção
+              escolhida.
+            </p>
             {errors.stock ? (
               <p className="text-sm text-destructive">{errors.stock.message}</p>
             ) : null}
@@ -825,6 +895,7 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
         <CompactSection
           title="Categoria e variações"
           description={`${selectedCategory?.name ?? "Sem categoria"} • ${variationCount || "sem"} opção${variationCount === 1 ? "" : "ões"}`}
+          defaultOpen={!product}
         >
         <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
           <div className="grid gap-3">
@@ -963,7 +1034,7 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
                       <X />
                     </Button>
                   </div>
-                  <div className="grid min-w-0 gap-3 lg:grid-cols-[180px_minmax(0,1fr)]">
+                  <div className="grid min-w-0 gap-3 xl:grid-cols-[160px_minmax(0,1fr)]">
                     <div className="grid gap-2 self-start">
                       <Label htmlFor={`variation-label-${group.id}`}>Nome</Label>
                       <Input
@@ -984,9 +1055,25 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
                             {getVariationValues(group.values).map((value) => (
                               <span
                                 key={value}
-                                className="inline-flex max-w-full items-center gap-1 border-2 border-border bg-muted px-2 py-1 text-xs font-black"
+                                className="grid w-full max-w-full grid-cols-[minmax(0,1fr)_4.75rem_1.25rem] items-center gap-1 border-2 border-border bg-muted px-2 py-1 text-xs font-black sm:w-auto"
                               >
                                 <span className="min-w-0 truncate">{value}</span>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  inputMode="numeric"
+                                  value={group.stockByValue[value] ?? ""}
+                                  placeholder="Est."
+                                  aria-label={`Estoque de ${value}`}
+                                  className="h-7 min-w-0 border bg-background px-2 text-xs"
+                                  onChange={(event) =>
+                                    updateVariationValueStock(
+                                      group.id,
+                                      value,
+                                      event.target.value,
+                                    )
+                                  }
+                                />
                                 <button
                                   type="button"
                                   aria-label={`Remover ${value}`}
@@ -1045,7 +1132,7 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
         <CompactSection
           title="Fotos"
           description={`${galleryImages.length}/8 imagens na galeria`}
-          defaultOpen={galleryImages.length === 0}
+          defaultOpen={!product && galleryImages.length === 0}
         >
         <div className="grid gap-4">
           <div className="grid gap-2">

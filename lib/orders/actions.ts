@@ -6,6 +6,11 @@ import {
   applyDiscountToCartItems,
   type DiscountCoupon,
 } from "@/lib/coupons";
+import {
+  getStockForCartVariation,
+  getVariationStockScopes,
+  isCartVariationAllowed,
+} from "@/lib/variation-stock";
 import type { CartItem } from "@/types/order";
 
 type CheckoutProduct = Prisma.ProductGetPayload<{
@@ -28,32 +33,20 @@ function normalizeRequestedQuantity(quantity: unknown) {
   return value;
 }
 
-function getAllowedVariations(product: CheckoutProduct) {
-  if (!Array.isArray(product.variations)) {
-    return [];
-  }
-
-  return product.variations.flatMap((variation) => {
-    if (
-      variation &&
-      typeof variation === "object" &&
-      "values" in variation &&
-      Array.isArray(variation.values)
-    ) {
-      return variation.values.map((value: unknown) => String(value));
-    }
-
-    return [];
-  });
+function productHasVariations(product: CheckoutProduct) {
+  return Array.isArray(product.variations) && product.variations.length > 0;
 }
 
-function normalizeCartProduct(product: CheckoutProduct): CartItem["product"] {
+function normalizeCartProduct(
+  product: CheckoutProduct,
+  stock = product.stock,
+): CartItem["product"] {
   return {
     id: product.id,
     name: product.name,
     slug: product.slug,
     price: Number(product.price),
-    stock: product.stock,
+    stock,
     category_id: product.category_id,
     compare_at_price: product.compare_at_price ? Number(product.compare_at_price) : null,
     is_offer: product.is_offer,
@@ -111,6 +104,8 @@ function buildCanonicalCheckoutItems(
 ) {
   const productsById = new Map(products.map((product) => [product.id, product]));
   const groupedItems = new Map<string, CartItem>();
+  const quantityByStockScope = new Map<string, { quantity: number; stock: number }>();
+  const quantityByProduct = new Map<string, number>();
 
   for (const requested of requestedItems) {
     const product = productsById.get(requested.productId);
@@ -119,21 +114,17 @@ function buildCanonicalCheckoutItems(
       throw new Error("Um produto do carrinho não está mais disponível.");
     }
 
-    if (product.stock <= 0) {
+    const variationStock = getStockForCartVariation(product, requested.variation);
+
+    if (variationStock <= 0) {
       throw new Error(`${product.name} está sem estoque.`);
     }
 
-    const allowedVariations = getAllowedVariations(product);
-
-    if (allowedVariations.length > 0 && !requested.variation) {
+    if (productHasVariations(product) && !requested.variation) {
       throw new Error(`Selecione uma variação para ${product.name}.`);
     }
 
-    if (
-      requested.variation &&
-      allowedVariations.length > 0 &&
-      !allowedVariations.includes(requested.variation)
-    ) {
+    if (requested.variation && !isCartVariationAllowed(product, requested.variation)) {
       throw new Error(`A variação escolhida para ${product.name} não está disponível.`);
     }
 
@@ -142,20 +133,37 @@ function buildCanonicalCheckoutItems(
     const nextQuantity = (existing?.quantity ?? 0) + requested.quantity;
 
     groupedItems.set(key, {
-      product: normalizeCartProduct(product),
+      product: normalizeCartProduct(product, variationStock),
       quantity: nextQuantity,
       variation: requested.variation,
     });
+
+    const stockScopes = getVariationStockScopes(product, requested.variation);
+
+    if (stockScopes.length) {
+      for (const scope of stockScopes) {
+        const scopedKey = `${product.id}:${scope.key}`;
+        const current = quantityByStockScope.get(scopedKey);
+
+        quantityByStockScope.set(scopedKey, {
+          stock: scope.stock,
+          quantity: (current?.quantity ?? 0) + requested.quantity,
+        });
+      }
+    } else {
+      quantityByProduct.set(
+        product.id,
+        (quantityByProduct.get(product.id) ?? 0) + requested.quantity,
+      );
+    }
   }
 
   const items = [...groupedItems.values()];
-  const quantityByProduct = new Map<string, number>();
 
   for (const item of items) {
-    quantityByProduct.set(
-      item.product.id,
-      (quantityByProduct.get(item.product.id) ?? 0) + item.quantity,
-    );
+    if (item.quantity > item.product.stock) {
+      throw new Error(`Estoque insuficiente para ${item.product.name}.`);
+    }
   }
 
   for (const [productId, quantity] of quantityByProduct) {
@@ -163,6 +171,12 @@ function buildCanonicalCheckoutItems(
 
     if (!product || quantity > product.stock) {
       throw new Error(`Estoque insuficiente para ${product?.name ?? "produto"}.`);
+    }
+  }
+
+  for (const [, scope] of quantityByStockScope) {
+    if (scope.quantity > scope.stock) {
+      throw new Error("Estoque insuficiente para uma variação do carrinho.");
     }
   }
 

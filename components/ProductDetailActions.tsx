@@ -5,6 +5,10 @@ import { ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import {
+  getStockForVariationSelection,
+  getVariationValueStock,
+} from "@/lib/variation-stock";
 import { useCartStore } from "@/store/cart-store";
 import type { Product } from "@/types/product";
 
@@ -28,11 +32,21 @@ export function ProductDetailActions({ product }: ProductDetailActionsProps) {
       Object.fromEntries(
         variationGroups.map((variation) => [
           variation.key,
-          variation.values[0] ?? "",
+          variation.values.find((value) => {
+            const valueStock = getVariationValueStock(variation, value);
+
+            return valueStock === null ? product.stock > 0 : valueStock > 0;
+          }) ??
+            variation.values[0] ??
+            "",
         ]),
       ),
   );
   const addItem = useCartStore((state) => state.addItem);
+  const selectedStock = useMemo(
+    () => getStockForVariationSelection(product, Object.values(selectedVariations)),
+    [product, selectedVariations],
+  );
 
   const variationLabel = useMemo(() => {
     if (!variationGroups.length) {
@@ -52,7 +66,7 @@ export function ProductDetailActions({ product }: ProductDetailActionsProps) {
   }, [selectedVariations, variationGroups]);
 
   function handleAdd() {
-    addItem(product, variationLabel);
+    addItem({ ...product, stock: selectedStock }, variationLabel);
     toast.success("Produto pronto no carrinho.", {
       id: `cart-add-${product.id}-${variationLabel ?? "default"}`,
     });
@@ -66,16 +80,18 @@ export function ProductDetailActions({ product }: ProductDetailActionsProps) {
           <div className="flex min-w-0 flex-wrap gap-2">
             {variation.values.map((value) => {
               const selected = selectedVariations[variation.key] === value;
+              const valueStock = getVariationValueStock(variation, value);
+              const unavailable = valueStock === null ? product.stock <= 0 : valueStock <= 0;
 
               return (
                 <Button
                   key={value}
                   type="button"
                   variant={selected ? "secondary" : "outline"}
-                  disabled={product.stock <= 0}
+                  disabled={unavailable}
                   className={`btn-variant max-w-full min-w-0 whitespace-normal px-3 ${
                     selected ? "selected" : ""
-                  } ${product.stock <= 0 ? "btn-variant-no-stock" : ""}`}
+                  } ${unavailable ? "btn-variant-no-stock" : ""}`}
                   onClick={() =>
                     setSelectedVariations((current) => ({
                       ...current,
@@ -99,7 +115,7 @@ export function ProductDetailActions({ product }: ProductDetailActionsProps) {
 
       <Button
         onClick={handleAdd}
-        disabled={product.stock <= 0}
+        disabled={selectedStock <= 0}
         className="add-cart-cta h-11"
       >
         <ShoppingCart />

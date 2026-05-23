@@ -36,6 +36,15 @@ type SortOption =
   | "stock-asc"
   | "stock-desc";
 
+function parseOptionalNumber(value: string) {
+  if (!value.trim()) {
+    return null;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 export function AdminProductsClient({
   products,
   categories,
@@ -58,10 +67,10 @@ export function AdminProductsClient({
 
   const filteredProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    const minPriceValue = minPrice ? Number(minPrice) : null;
-    const maxPriceValue = maxPrice ? Number(maxPrice) : null;
-    const minStockValue = minStock ? Number(minStock) : null;
-    const maxStockValue = maxStock ? Number(maxStock) : null;
+    const minPriceValue = parseOptionalNumber(minPrice);
+    const maxPriceValue = parseOptionalNumber(maxPrice);
+    const minStockValue = parseOptionalNumber(minStock);
+    const maxStockValue = parseOptionalNumber(maxStock);
 
     return [...products]
       .filter((product) => {
@@ -280,36 +289,56 @@ export function AdminProductsClient({
             <option value="stock-desc">Maior estoque</option>
           </select>
           <div className="grid grid-cols-2 gap-2">
-            <Input
-              type="number"
-              min="0"
-              value={minPrice}
-              onChange={(event) => setMinPrice(event.target.value)}
-              placeholder="Preço min."
-            />
-            <Input
-              type="number"
-              min="0"
-              value={maxPrice}
-              onChange={(event) => setMaxPrice(event.target.value)}
-              placeholder="Preço máx."
-            />
+            <label className="grid gap-1">
+              <span className="text-[11px] font-black uppercase text-muted-foreground">
+                Preço min.
+              </span>
+              <Input
+                type="number"
+                min="0"
+                value={minPrice}
+                onChange={(event) => setMinPrice(event.target.value)}
+                placeholder="0"
+              />
+            </label>
+            <label className="grid gap-1">
+              <span className="text-[11px] font-black uppercase text-muted-foreground">
+                Preço máx.
+              </span>
+              <Input
+                type="number"
+                min="0"
+                value={maxPrice}
+                onChange={(event) => setMaxPrice(event.target.value)}
+                placeholder="0"
+              />
+            </label>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <Input
-              type="number"
-              min="0"
-              value={minStock}
-              onChange={(event) => setMinStock(event.target.value)}
-              placeholder="Est. min."
-            />
-            <Input
-              type="number"
-              min="0"
-              value={maxStock}
-              onChange={(event) => setMaxStock(event.target.value)}
-              placeholder="Est. máx."
-            />
+            <label className="grid gap-1">
+              <span className="text-[11px] font-black uppercase text-muted-foreground">
+                Est. min.
+              </span>
+              <Input
+                type="number"
+                min="0"
+                value={minStock}
+                onChange={(event) => setMinStock(event.target.value)}
+                placeholder="0"
+              />
+            </label>
+            <label className="grid gap-1">
+              <span className="text-[11px] font-black uppercase text-muted-foreground">
+                Est. máx.
+              </span>
+              <Input
+                type="number"
+                min="0"
+                value={maxStock}
+                onChange={(event) => setMaxStock(event.target.value)}
+                placeholder="0"
+              />
+            </label>
           </div>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -367,8 +396,9 @@ export function AdminProductsClient({
                             ) : null}
                           </div>
                           <div className="min-w-0">
-                            <p className="font-semibold">{product.name}</p>
-                            <p className="text-xs text-muted-foreground">/{product.slug}</p>
+                            <p className="line-clamp-2 font-semibold leading-snug">
+                              {product.name}
+                            </p>
                           </div>
                         </div>
                       </td>

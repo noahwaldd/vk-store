@@ -2,6 +2,10 @@ import { unstable_noStore as noStore } from "next/cache";
 
 import { prisma } from "@/lib/db/prisma";
 import type { Prisma } from "@/lib/generated/prisma/client";
+import {
+  getTotalConfiguredVariationStock,
+  normalizeVariationStockByValue,
+} from "@/lib/variation-stock";
 import type { Category, Product, ProductVariation } from "@/types/product";
 
 export type ProductSort = "recent" | "price-asc" | "price-desc" | "name-asc";
@@ -46,26 +50,42 @@ function normalizeVariations(value: Prisma.JsonValue): ProductVariation[] {
   }
 
   return value
-    .map((item) => {
+    .flatMap((item): ProductVariation[] => {
       if (!item || typeof item !== "object" || !("values" in item)) {
-        return null;
+        return [];
       }
 
-      const variation = item as { label?: unknown; values?: unknown };
+      const variation = item as {
+        label?: unknown;
+        values?: unknown;
+        stockByValue?: unknown;
+      };
 
       if (!Array.isArray(variation.values)) {
-        return null;
+        return [];
       }
 
-      return {
+      const values = variation.values.map((entry) => String(entry));
+      const stockByValue = normalizeVariationStockByValue(
+        variation.stockByValue,
+        values,
+      );
+
+      return [{
         label: String(variation.label ?? "Variação"),
-        values: variation.values.map((entry) => String(entry)),
-      };
-    })
-    .filter((item): item is ProductVariation => Boolean(item));
+        values,
+        ...(stockByValue ? { stockByValue } : {}),
+      }];
+    });
 }
 
 export function normalizeProduct(row: ProductWithRelations): Product {
+  const variations = normalizeVariations(row.variations);
+  const stock = getTotalConfiguredVariationStock({
+    stock: row.stock,
+    variations,
+  }) ?? row.stock;
+
   return {
     id: row.id,
     name: row.name,
@@ -76,8 +96,8 @@ export function normalizeProduct(row: ProductWithRelations): Product {
       row.compare_at_price === null ? null : Number(row.compare_at_price),
     category_id: row.category_id ?? "",
     category: row.category,
-    stock: row.stock,
-    variations: normalizeVariations(row.variations),
+    stock,
+    variations,
     images: row.images.map((image) => ({
       id: image.id,
       product_id: image.product_id,

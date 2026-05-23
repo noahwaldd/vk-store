@@ -2,6 +2,7 @@ import { productSchema, type ProductPayload } from "@/schemas/product-schema";
 import { prisma } from "@/lib/db/prisma";
 import { uploadProductImageToS3 } from "@/lib/storage/s3";
 import { slugify } from "@/lib/utils";
+import { normalizeVariationStockByValue } from "@/lib/variation-stock";
 import type { ProductVariation } from "@/types/product";
 
 export function parseProductPayload(formData: FormData): ProductPayload {
@@ -210,7 +211,11 @@ function parseVariationGroups(value: string | undefined): ProductVariation[] {
       return [];
     }
 
-    const variation = item as { label?: unknown; values?: unknown };
+    const variation = item as {
+      label?: unknown;
+      values?: unknown;
+      stockByValue?: unknown;
+    };
     const label = String(variation.label ?? "").trim();
     const values = normalizeVariationValues(variation.values);
     const labelKey = label.toLocaleLowerCase("pt-BR");
@@ -221,7 +226,18 @@ function parseVariationGroups(value: string | undefined): ProductVariation[] {
 
     seenLabels.add(labelKey);
 
-    return [{ label, values }];
+    const stockByValue = normalizeVariationStockByValue(
+      variation.stockByValue,
+      values,
+    );
+
+    return [
+      {
+        label,
+        values,
+        ...(stockByValue ? { stockByValue } : {}),
+      },
+    ];
   });
 }
 

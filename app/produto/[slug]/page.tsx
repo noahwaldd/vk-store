@@ -62,7 +62,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const isOffer = Boolean(hasDiscount && product.is_offer);
 
   return (
-    <div className="mx-auto w-[min(calc(100%_-_1.5rem),1120px)] py-4 sm:w-[min(calc(100%_-_2rem),1120px)]">
+    <div className="mx-auto w-[min(calc(100%_-_1.5rem),1040px)] py-4 sm:w-[min(calc(100%_-_2rem),1040px)]">
       <ProductViewTracker product={product} />
 
       <Button asChild variant="ghost" size="sm" className="mb-4">
@@ -72,10 +72,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
         </Link>
       </Button>
 
-      <div className="grid items-stretch gap-5 lg:grid-cols-[minmax(0,520px)_minmax(0,1fr)]">
+      <div className="grid items-start gap-5 min-[900px]:grid-cols-[minmax(0,420px)_minmax(0,1fr)] xl:grid-cols-[minmax(0,480px)_minmax(0,1fr)]">
         <ProductImageGallery images={product.images} productName={product.name} />
 
-        <section className="min-w-0 rounded-none border-2 border-foreground bg-background p-4 lg:min-h-[640px] lg:p-5">
+        <section className="min-w-0 rounded-none border-2 border-foreground bg-background p-4 xl:p-5">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="muted">{product.category?.name ?? "Produto"}</Badge>
             {isOffer ? <Badge className="offer-badge">Oferta</Badge> : null}
@@ -95,7 +95,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 {formatCurrency(product.compare_at_price ?? 0)}
               </p>
             ) : null}
-            <p className="break-words text-[1.7rem] font-black leading-tight">
+            <p className="break-words text-2xl font-black leading-tight sm:text-[1.7rem]">
               {formatCurrency(product.price)}
             </p>
             <p className="mt-1 break-words text-sm text-muted-foreground">
@@ -142,13 +142,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
       </div>
 
       {relatedProducts.length ? (
-        <section className="mt-10">
+        <section className="mt-8 xl:mt-10">
           <div className="mb-5 flex flex-col items-start gap-3 border-b-2 border-foreground pb-3 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0">
               <p className="font-display text-base tracking-widest text-muted-foreground">
                 Mesma categoria
               </p>
-              <h2 className="break-words font-display text-3xl uppercase sm:text-4xl">
+              <h2 className="break-words font-display text-3xl uppercase xl:text-4xl">
                 Veja também
               </h2>
             </div>

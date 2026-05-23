@@ -73,7 +73,7 @@ export const productSchema = z
       .string()
       .max(40, "Use um nome curto para o tipo de variação.")
       .optional(),
-    variation_groups: z.string().max(3000, "Use uma lista menor de variações.").optional(),
+    variation_groups: z.string().max(12000, "Use uma lista menor de variações.").optional(),
     featured: z.coerce.boolean().optional(),
     is_offer: z.coerce.boolean().optional(),
   })

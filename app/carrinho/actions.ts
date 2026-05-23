@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/db/prisma";
+import { getStockForCartVariation } from "@/lib/variation-stock";
 import type { CartItem } from "@/types/order";
 
 function itemKey(item: CartItem) {
@@ -51,7 +52,7 @@ export async function syncCartItemsAction(items: CartItem[]) {
       continue;
     }
 
-    const stock = Math.max(product.stock, 0);
+    const stock = getStockForCartVariation(product, requested.variation);
     const quantity = stock > 0 ? Math.min(requested.quantity, stock) : requested.quantity;
     const syncedItem: CartItem = {
       product: {

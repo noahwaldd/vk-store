@@ -38,8 +38,8 @@ export function ProductImageGallery({
   }
 
   return (
-    <div className="grid w-full max-w-[520px] gap-2 justify-self-center lg:h-full lg:max-w-none lg:grid-rows-[minmax(0,1fr)_auto] lg:justify-self-stretch">
-      <div className="relative aspect-[4/3] overflow-hidden rounded-none border-2 border-foreground bg-muted/35 lg:aspect-auto lg:min-h-[560px]">
+    <div className="grid w-full max-w-[520px] gap-2 justify-self-center min-[900px]:max-w-none min-[900px]:justify-self-stretch xl:h-full xl:grid-rows-[minmax(0,1fr)_auto]">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-none border-2 border-foreground bg-muted/35 xl:aspect-auto xl:min-h-[520px]">
         {activeImage ? (
           <button
             type="button"
@@ -52,7 +52,7 @@ export function ProductImageGallery({
               alt={activeImage.alt ?? productName}
               fill
               priority
-              sizes="(min-width: 1024px) 520px, 100vw"
+              sizes="(min-width: 1280px) 480px, (min-width: 900px) 420px, 100vw"
               className="object-contain"
               unoptimized
             />
