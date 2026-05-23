@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   type DragEvent,
+  type KeyboardEvent,
   type ReactNode,
 } from "react";
 import Image from "next/image";
@@ -298,6 +299,7 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
   const [variationGroups, setVariationGroups] = useState<VariationDraft[]>(
     initialVariationGroups,
   );
+  const [variationInputs, setVariationInputs] = useState<Record<string, string>>({});
   const [draggedImageId, setDraggedImageId] = useState<string | null>(null);
   const [categoryQuery, setCategoryQuery] = useState("");
   const [hasStockEnabled, setHasStockEnabled] = useState(
@@ -519,6 +521,71 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
     setVariationGroups((groups) => [...groups, createVariationDraft()]);
   }
 
+  function setVariationInput(groupId: string, value: string) {
+    setVariationInputs((inputs) => ({
+      ...inputs,
+      [groupId]: value,
+    }));
+  }
+
+  function addVariationValues(groupId: string) {
+    const rawValue = variationInputs[groupId] ?? "";
+    const nextValues = getVariationValues(rawValue);
+
+    if (!nextValues.length) {
+      return;
+    }
+
+    setVariationGroups((groups) =>
+      groups.map((group) => {
+        if (group.id !== groupId) {
+          return group;
+        }
+
+        const mergedValues = getVariationValues(
+          [...getVariationValues(group.values), ...nextValues].join(", "),
+        );
+
+        return {
+          ...group,
+          values: mergedValues.join(", "),
+        };
+      }),
+    );
+    setVariationInput(groupId, "");
+  }
+
+  function removeVariationValue(groupId: string, value: string) {
+    setVariationGroups((groups) =>
+      groups.map((group) => {
+        if (group.id !== groupId) {
+          return group;
+        }
+
+        const valueKey = value.toLocaleLowerCase("pt-BR");
+
+        return {
+          ...group,
+          values: getVariationValues(group.values)
+            .filter((item) => item.toLocaleLowerCase("pt-BR") !== valueKey)
+            .join(", "),
+        };
+      }),
+    );
+  }
+
+  function handleVariationInputKeyDown(
+    event: KeyboardEvent<HTMLInputElement>,
+    groupId: string,
+  ) {
+    if (event.key !== "Enter") {
+      return;
+    }
+
+    event.preventDefault();
+    addVariationValues(groupId);
+  }
+
   function updateVariationGroup(
     groupId: string,
     field: keyof Pick<VariationDraft, "label" | "values">,
@@ -537,6 +604,11 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
   }
 
   function removeVariationGroup(groupId: string) {
+    setVariationInputs((inputs) => {
+      const nextInputs = { ...inputs };
+      delete nextInputs[groupId];
+      return nextInputs;
+    });
     setVariationGroups((groups) => {
       const nextGroups = groups.filter((group) => group.id !== groupId);
 
@@ -754,7 +826,7 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
           title="Categoria e variações"
           description={`${selectedCategory?.name ?? "Sem categoria"} • ${variationCount || "sem"} opção${variationCount === 1 ? "" : "ões"}`}
         >
-        <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
           <div className="grid gap-3">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
@@ -784,7 +856,7 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
                 Cadastre uma categoria antes de criar produtos.
               </div>
             ) : (
-              <div className="grid max-h-64 gap-2 overflow-y-auto border-2 border-border p-2 sm:grid-cols-2">
+              <div className="grid max-h-56 gap-2 overflow-y-auto border-2 border-border p-2 sm:grid-cols-2 xl:grid-cols-1">
                 {filteredCategories.map((category) => {
                   const selected = category.id === selectedCategoryId;
 
@@ -799,16 +871,20 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
                           shouldValidate: true,
                         })
                       }
-                      className={`border-2 p-3 text-left transition-colors ${
+                      className={`min-w-0 border-2 p-2.5 text-left transition-colors ${
                         selected
                           ? "border-foreground bg-foreground text-background"
                           : "border-border bg-background hover:border-foreground"
                       }`}
                     >
-                      <span className="block font-display text-xl uppercase leading-none">
+                      <span className="block truncate text-sm font-black uppercase">
                         {category.name}
                       </span>
-                      <span className={selected ? "text-background/70" : "text-muted-foreground"}>
+                      <span
+                        className={`block truncate text-xs ${
+                          selected ? "text-background/70" : "text-muted-foreground"
+                        }`}
+                      >
                         /{category.slug}
                       </span>
                     </button>
@@ -824,7 +900,7 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
           <div className="grid gap-3 self-start">
             <div className="grid gap-2">
               <Label>Tipos de tamanho e variação</Label>
-              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="flex gap-2 overflow-x-auto pb-1">
                 {sizePresets.map((preset) => {
                   const Icon = preset.icon;
 
@@ -833,7 +909,7 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
                       key={preset.id}
                       type="button"
                       variant="outline"
-                      className="h-auto justify-start px-3 py-2 text-left"
+                      className="h-auto min-w-[150px] shrink-0 justify-start px-3 py-2 text-left"
                       onClick={() => applySizePreset(preset)}
                     >
                       <Icon />
@@ -866,12 +942,17 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
               {variationGroups.map((group, index) => (
                 <div
                   key={group.id}
-                  className="grid gap-3 border-2 border-border bg-muted/30 p-3"
+                  className="grid min-w-0 gap-3 border-2 border-border bg-muted/30 p-3"
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-black uppercase text-muted-foreground">
-                      Variação {index + 1}
-                    </span>
+                  <div className="flex min-w-0 items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <span className="text-xs font-black uppercase text-muted-foreground">
+                        Variação {index + 1}
+                      </span>
+                      <p className="mt-1 truncate text-sm font-bold">
+                        {group.label.trim() || "Sem nome"}
+                      </p>
+                    </div>
                     <Button
                       type="button"
                       variant="ghost"
@@ -882,30 +963,71 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
                       <X />
                     </Button>
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor={`variation-label-${group.id}`}>Nome do seletor</Label>
-                    <Input
-                      id={`variation-label-${group.id}`}
-                      value={group.label}
-                      placeholder="Tamanho, Cor, Volume..."
-                      onChange={(event) =>
-                        updateVariationGroup(group.id, "label", event.target.value)
-                      }
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor={`variation-values-${group.id}`}>Opções</Label>
-                    <Input
-                      id={`variation-values-${group.id}`}
-                      value={group.values}
-                      placeholder="P, M, G ou Preto, Branco, Azul"
-                      onChange={(event) =>
-                        updateVariationGroup(group.id, "values", event.target.value)
-                      }
-                    />
-                    <p className="text-xs leading-5 text-muted-foreground">
-                      Separe por vírgula. Cada grupo aparece como uma escolha no produto.
-                    </p>
+                  <div className="grid min-w-0 gap-3 lg:grid-cols-[180px_minmax(0,1fr)]">
+                    <div className="grid gap-2 self-start">
+                      <Label htmlFor={`variation-label-${group.id}`}>Nome</Label>
+                      <Input
+                        id={`variation-label-${group.id}`}
+                        value={group.label}
+                        placeholder="Tamanho, Cor..."
+                        onChange={(event) =>
+                          updateVariationGroup(group.id, "label", event.target.value)
+                        }
+                      />
+                    </div>
+
+                    <div className="grid min-w-0 gap-2">
+                      <Label htmlFor={`variation-input-${group.id}`}>Opções</Label>
+                      <div className="min-h-11 rounded-none border-2 border-border bg-background p-2">
+                        {getVariationValues(group.values).length ? (
+                          <div className="flex min-w-0 flex-wrap gap-1.5">
+                            {getVariationValues(group.values).map((value) => (
+                              <span
+                                key={value}
+                                className="inline-flex max-w-full items-center gap-1 border-2 border-border bg-muted px-2 py-1 text-xs font-black"
+                              >
+                                <span className="min-w-0 truncate">{value}</span>
+                                <button
+                                  type="button"
+                                  aria-label={`Remover ${value}`}
+                                  className="grid size-4 shrink-0 place-items-center hover:text-destructive"
+                                  onClick={() => removeVariationValue(group.id, value)}
+                                >
+                                  <X className="size-3" />
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="px-1 py-1 text-xs font-semibold text-muted-foreground">
+                            Nenhuma opção adicionada.
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                        <Input
+                          id={`variation-input-${group.id}`}
+                          value={variationInputs[group.id] ?? ""}
+                          placeholder="Digite e pressione Enter"
+                          onChange={(event) => setVariationInput(group.id, event.target.value)}
+                          onKeyDown={(event) => handleVariationInputKeyDown(event, group.id)}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="shrink-0"
+                          onClick={() => addVariationValues(group.id)}
+                        >
+                          <Plus />
+                          Adicionar
+                        </Button>
+                      </div>
+                      <p className="text-xs leading-5 text-muted-foreground">
+                        Pode colar várias opções separadas por vírgula. Cada valor vira uma
+                        escolha no produto.
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))}
