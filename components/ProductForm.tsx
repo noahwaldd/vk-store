@@ -92,11 +92,6 @@ const sizePresets = [
     icon: Droplets,
     variationLabel: "Volume",
     values: [
-      "1,5 ml",
-      "2 ml",
-      "5 ml",
-      "10 ml",
-      "15 ml",
       "30 ml",
       "50 ml",
       "75 ml",
@@ -984,14 +979,23 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
                       className="drag-sort-item grid gap-2 rounded-none border-2 border-border bg-muted/35 p-2"
                     >
                       <div className="relative aspect-square overflow-hidden bg-background">
-                        <Image
-                          src={imageUrl}
-                          alt={imageAlt}
-                          fill
-                          sizes="180px"
-                          className="object-cover"
-                          unoptimized
-                        />
+                        <button
+                          type="button"
+                          draggable
+                          aria-label={`Arrastar foto ${index + 1}`}
+                          className="focus-ring relative block h-full w-full cursor-grab active:cursor-grabbing"
+                          onDragStart={() => setDraggedImageId(image.id)}
+                          onDragEnd={() => setDraggedImageId(null)}
+                        >
+                          <Image
+                            src={imageUrl}
+                            alt={imageAlt}
+                            fill
+                            sizes="180px"
+                            className="object-cover"
+                            unoptimized
+                          />
+                        </button>
                         <span className="absolute left-2 top-2 bg-foreground px-2 py-1 text-xs font-black text-background">
                           {index + 1}
                         </span>

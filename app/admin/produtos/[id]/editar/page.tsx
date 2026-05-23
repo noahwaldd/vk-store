@@ -30,8 +30,7 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
   return (
     <div className="grid gap-6">
       <div>
-        <p className="text-sm font-bold uppercase text-primary">Admin</p>
-        <h1 className="mt-2 text-3xl font-black">Editar produto</h1>
+        <h1 className="text-3xl font-black">Editar produto</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Atualize informações comerciais, estoque e imagem.
         </p>

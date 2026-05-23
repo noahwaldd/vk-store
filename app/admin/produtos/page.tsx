@@ -26,8 +26,7 @@ export default async function AdminProductsPage() {
     <div className="grid gap-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-bold uppercase text-primary">Admin</p>
-          <h1 className="mt-2 text-3xl font-black">Produtos</h1>
+          <h1 className="text-3xl font-black">Produtos</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Liste, edite, remova da vitrine e acompanhe o estoque.
           </p>

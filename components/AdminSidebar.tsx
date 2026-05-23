@@ -70,9 +70,14 @@ export function AdminSidebar() {
   return (
     <aside
       data-collapsed={isCollapsed}
-      className="admin-sidebar w-full border border-border/80 bg-secondary/55 p-2 transition-[width] lg:sticky lg:top-24 lg:min-h-[calc(100vh-7rem)] lg:w-[248px] lg:data-[collapsed=true]:w-[76px]"
+      className="admin-sidebar z-20 w-full self-start border-2 border-foreground bg-background p-2 shadow-[6px_6px_0_var(--border)] transition-[width] lg:sticky lg:top-28 lg:min-h-[calc(100vh-8rem)] lg:w-[248px] lg:data-[collapsed=true]:w-16"
     >
-      <div className="mb-3 flex items-center justify-between gap-2 border-b border-border/80 px-2 py-2">
+      <div
+        className={cn(
+          "mb-3 flex items-center justify-between gap-2 border-b border-border/80 px-2 py-2",
+          isCollapsed && "lg:justify-center lg:px-0",
+        )}
+      >
         <div
           className={cn(
             "font-display text-base uppercase tracking-wide text-foreground",
@@ -85,7 +90,10 @@ export function AdminSidebar() {
           type="button"
           variant="ghost"
           size="icon"
-          className="ml-auto hidden size-8 border border-transparent lg:inline-flex"
+          className={cn(
+            "hidden size-8 border border-transparent lg:inline-flex",
+            !isCollapsed && "ml-auto",
+          )}
           aria-label={isCollapsed ? "Expandir menu admin" : "Minimizar menu admin"}
           onClick={toggleMenu}
         >
@@ -124,7 +132,7 @@ export function AdminSidebar() {
                       "bg-background text-foreground shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--foreground)_12%,transparent)]",
                     active &&
                       "before:absolute before:left-0 before:top-1.5 before:h-7 before:w-1 before:bg-foreground before:content-['']",
-                    isCollapsed && "lg:justify-center lg:px-0",
+                    isCollapsed && "lg:justify-center lg:gap-0 lg:px-0",
                   )}
                 >
                   <Icon className="size-4 shrink-0" />

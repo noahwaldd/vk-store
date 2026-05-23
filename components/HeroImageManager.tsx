@@ -99,9 +99,9 @@ export function HeroImageManager({
         Aplicar efeito de contraste sobre a foto da capa
       </label>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <div className="grid gap-3">
-          <div>
+      <div className="grid items-start gap-4 lg:grid-cols-2">
+        <div className="grid content-start gap-3 lg:grid-rows-[4.25rem_2.5rem_auto]">
+          <div className="content-start">
             <Label htmlFor="hero-desktop-image">Computador</Label>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
               Recomendado: 1920 x 900 px, até 5MB.
@@ -112,6 +112,7 @@ export function HeroImageManager({
             name="desktop_image"
             type="file"
             accept="image/jpeg,image/png,image/webp,image/avif"
+            className="h-10"
             onChange={(event) =>
               {
                 const file = event.target.files?.[0];
@@ -138,8 +139,8 @@ export function HeroImageManager({
           </div>
         </div>
 
-        <div className="grid gap-3">
-          <div>
+        <div className="grid content-start gap-3 lg:grid-rows-[4.25rem_2.5rem_auto]">
+          <div className="content-start">
             <Label htmlFor="hero-mobile-image">Celular</Label>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
               Recomendado: 1080 x 1600 px, até 5MB.
@@ -150,6 +151,7 @@ export function HeroImageManager({
             name="mobile_image"
             type="file"
             accept="image/jpeg,image/png,image/webp,image/avif"
+            className="h-10"
             onChange={(event) =>
               {
                 const file = event.target.files?.[0];
@@ -158,7 +160,7 @@ export function HeroImageManager({
               }
             }
           />
-          <div className="relative aspect-[9/14] max-h-[360px] overflow-hidden border-2 border-foreground bg-muted">
+          <div className="relative aspect-[9/14] max-h-[360px] w-full max-w-[232px] overflow-hidden border-2 border-foreground bg-muted">
             {mobilePreview ? (
               <Image
                 src={mobilePreview}

@@ -6,6 +6,7 @@ import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 
 import { EmptyState } from "@/components/EmptyState";
 import { RecentlyViewedProducts } from "@/components/RecentlyViewedProducts";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -57,6 +58,9 @@ export function CartPageClient({ coupons }: CartPageClientProps) {
         {items.map((item) => {
           const image = item.product.images[0]?.url;
           const isUnavailable = item.product.stock <= 0;
+          const hasDiscount =
+            item.product.compare_at_price &&
+            item.product.compare_at_price > item.product.price;
 
           return (
             <Card key={`${item.product.id}-${item.variation ?? "default"}`}>
@@ -90,10 +94,15 @@ export function CartPageClient({ coupons }: CartPageClientProps) {
                   <p className="mt-2 text-sm text-muted-foreground">
                     {formatCurrency(item.product.price)} cada
                   </p>
-                  {isUnavailable ? (
-                    <span className="mt-3 inline-flex border-2 border-destructive px-2 py-1 text-[11px] font-black uppercase text-destructive">
-                      Esgotado
-                    </span>
+                  {hasDiscount || isUnavailable ? (
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      {hasDiscount ? <Badge className="offer-badge">Oferta</Badge> : null}
+                      {isUnavailable ? (
+                        <span className="inline-flex border-2 border-destructive px-2 py-1 text-[11px] font-black uppercase text-destructive">
+                          Esgotado
+                        </span>
+                      ) : null}
+                    </div>
                   ) : null}
                 </div>
 

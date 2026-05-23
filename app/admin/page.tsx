@@ -37,8 +37,7 @@ export default async function AdminPage() {
     <div className="grid gap-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-bold uppercase text-primary">Admin</p>
-          <h1 className="mt-2 text-3xl font-black">Painel</h1>
+          <h1 className="text-3xl font-black">Painel</h1>
         </div>
         <Button asChild>
           <Link href="/admin/produtos/novo">

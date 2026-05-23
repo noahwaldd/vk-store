@@ -48,11 +48,6 @@ export function ProductCard({ product }: ProductCardProps) {
               Sem imagem
             </div>
           )}
-          {hasDiscount ? (
-            <Badge className="offer-badge absolute left-3 top-3">
-              Oferta
-            </Badge>
-          ) : null}
         </div>
       </Link>
 
@@ -83,9 +78,12 @@ export function ProductCard({ product }: ProductCardProps) {
             ) : null}
             <p className="text-base font-black">{formatCurrency(product.price)}</p>
           </div>
-          <Badge variant={product.stock > 0 ? "muted" : "outline"}>
-            {product.stock > 0 ? `${product.stock} un.` : "Esgotado"}
-          </Badge>
+          <div className="flex shrink-0 flex-col items-end gap-1">
+            {hasDiscount ? <Badge className="offer-badge">Oferta</Badge> : null}
+            <Badge variant={product.stock > 0 ? "muted" : "outline"}>
+              {product.stock > 0 ? `${product.stock} un.` : "Esgotado"}
+            </Badge>
+          </div>
         </div>
 
         {product.stock > 0 ? (

@@ -19,8 +19,7 @@ export default async function AdminNavigationPage() {
   return (
     <div className="grid gap-6">
       <div>
-        <p className="text-sm font-bold uppercase text-primary">Admin</p>
-        <h1 className="mt-2 text-3xl font-black">Navegação</h1>
+        <h1 className="text-3xl font-black">Navegação</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Altere os links que aparecem no menu principal e no rodapé sem editar
           código. Para apontar para uma categoria, use um

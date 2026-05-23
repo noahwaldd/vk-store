@@ -19,8 +19,7 @@ export default async function AdminCouponsPage() {
   return (
     <div className="grid gap-6">
       <div>
-        <p className="text-sm font-bold uppercase text-primary">Admin</p>
-        <h1 className="mt-2 text-3xl font-black">Cupons</h1>
+        <h1 className="text-3xl font-black">Cupons</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Controle descontos por período, limite de uso, subtotal, quantidade e categorias.
         </p>
