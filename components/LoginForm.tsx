@@ -40,6 +40,10 @@ export function LoginForm({
   const emailSuggestion =
     mode === "register" ? getEmailCorrectionSuggestion(email) : null;
 
+  function setPasswordWithoutSpaces(value: string) {
+    setPassword(value.replace(/\s/g, ""));
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -208,8 +212,12 @@ export function LoginForm({
               name="password"
               type={showPassword ? "text" : "password"}
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder={mode === "register" ? "Senha com pelo menos 12 caracteres" : "Senha"}
+              onChange={(event) => setPasswordWithoutSpaces(event.target.value)}
+              placeholder={
+                mode === "register"
+                  ? "Senha com pelo menos 12 caracteres, sem espaços"
+                  : "Senha"
+              }
               autoComplete={mode === "register" ? "new-password" : "current-password"}
               className="h-12 rounded-none border-2 border-foreground bg-background pr-12"
               required

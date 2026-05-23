@@ -29,7 +29,10 @@ const resetPasswordSchema = z
     password: z
       .string()
       .min(12, "A senha precisa ter pelo menos 12 caracteres.")
-      .max(256, "A senha está muito longa."),
+      .max(256, "A senha está muito longa.")
+      .refine((value) => !/\s/.test(value), {
+        message: "A senha não pode ter espaços.",
+      }),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {

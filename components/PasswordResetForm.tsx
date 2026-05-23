@@ -40,6 +40,10 @@ export function PasswordResetForm({ token }: PasswordResetFormProps) {
     });
   }
 
+  function removePasswordSpaces(value: string) {
+    return value.replace(/\s/g, "");
+  }
+
   if (!token) {
     return (
       <div className="w-full">
@@ -94,8 +98,8 @@ export function PasswordResetForm({ token }: PasswordResetFormProps) {
               name="password"
               type={showPassword ? "text" : "password"}
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="Nova senha"
+              onChange={(event) => setPassword(removePasswordSpaces(event.target.value))}
+              placeholder="Nova senha sem espaços"
               autoComplete="new-password"
               className="h-12 rounded-none border-2 border-foreground bg-background pr-12"
               minLength={12}
@@ -116,8 +120,8 @@ export function PasswordResetForm({ token }: PasswordResetFormProps) {
             name="confirmPassword"
             type={showPassword ? "text" : "password"}
             value={confirmPassword}
-            onChange={(event) => setConfirmPassword(event.target.value)}
-            placeholder="Confirmar nova senha"
+            onChange={(event) => setConfirmPassword(removePasswordSpaces(event.target.value))}
+            placeholder="Confirmar nova senha sem espaços"
             autoComplete="new-password"
             className="h-12 rounded-none border-2 border-foreground bg-background"
             minLength={12}

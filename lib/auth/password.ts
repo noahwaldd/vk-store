@@ -21,13 +21,14 @@ export function isValidPasswordInput(password?: string | null) {
   return Boolean(
     password &&
       password.length >= MIN_PASSWORD_LENGTH &&
-      password.length <= MAX_PASSWORD_LENGTH,
+      password.length <= MAX_PASSWORD_LENGTH &&
+      !/\s/.test(password),
   );
 }
 
 export async function hashPassword(password: string) {
   if (!isValidPasswordInput(password)) {
-    throw new Error("A senha deve ter entre 12 e 256 caracteres.");
+    throw new Error("A senha deve ter entre 12 e 256 caracteres e não pode ter espaços.");
   }
 
   const salt = randomBytes(24).toString("base64url");
