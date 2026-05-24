@@ -34,16 +34,16 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <Card
       data-animate
-      className="group grid h-full grid-cols-[112px_minmax(0,1fr)] overflow-hidden p-0 min-[520px]:flex min-[520px]:flex-col"
+      className="group grid h-full grid-cols-[112px_minmax(0,1fr)] overflow-hidden p-0 min-[360px]:flex min-[360px]:flex-col"
     >
       <Link href={`/produto/${product.slug}`} className="block min-w-0">
-        <div className="relative aspect-[3/4] overflow-hidden bg-muted min-[520px]:aspect-[4/5]">
+        <div className="relative aspect-[3/4] overflow-hidden bg-muted min-[360px]:aspect-[4/5]">
           {image ? (
             <Image
               src={image}
               alt={product.images[0]?.alt ?? product.name}
               fill
-              sizes="(min-width: 1536px) 20vw, (min-width: 1280px) 25vw, (min-width: 768px) 33vw, (min-width: 520px) 50vw, 112px"
+              sizes="(min-width: 1536px) 20vw, (min-width: 1280px) 25vw, (min-width: 768px) 33vw, (min-width: 360px) 50vw, 112px"
               className="object-cover transition-transform duration-300 group-hover:scale-105"
               unoptimized
             />

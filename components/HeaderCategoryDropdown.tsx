@@ -63,7 +63,7 @@ export function HeaderCategoryDropdown({ items }: HeaderCategoryDropdownProps) {
             <Link
               key={item.href}
               href={item.href}
-              className="focus-ring px-3 py-2 text-sm font-bold hover:bg-muted hover:shadow-[inset_0_0_0_2px_var(--street-lime)]"
+              className="focus-ring px-3 py-2 text-sm font-bold hover:bg-muted hover:shadow-[inset_0_0_0_2px_var(--border)]"
               onClick={() => setOpen(false)}
             >
               {item.label}
