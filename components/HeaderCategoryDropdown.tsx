@@ -55,12 +55,15 @@ export function HeaderCategoryDropdown({ items }: HeaderCategoryDropdownProps) {
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-full z-50 mt-2 grid max-h-[min(70vh,28rem)] w-[min(82vw,360px)] gap-1 overflow-y-auto border-2 border-street-lime bg-background p-2 shadow-[8px_8px_0_var(--street-lime)]">
+        <div
+          className="absolute right-0 top-full z-50 mt-2 grid max-h-[min(70vh,28rem)] w-[min(82vw,360px)] gap-1 overflow-y-auto border-2 bg-background p-2 shadow-[8px_8px_0_var(--street-lime)]"
+          style={{ borderColor: "var(--street-lime)" }}
+        >
           {items.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="focus-ring border-2 border-transparent px-3 py-2 text-sm font-bold hover:border-street-lime hover:bg-muted"
+              className="focus-ring px-3 py-2 text-sm font-bold hover:bg-muted hover:shadow-[inset_0_0_0_2px_var(--street-lime)]"
               onClick={() => setOpen(false)}
             >
               {item.label}
