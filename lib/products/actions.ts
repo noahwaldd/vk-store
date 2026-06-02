@@ -24,6 +24,7 @@ export function parseProductPayload(formData: FormData): ProductPayload {
 }
 
 type ResolvedProductImage = {
+  sourceId?: string | null;
   key: string | null;
   url: string;
   alt?: string | null;
@@ -37,6 +38,7 @@ type PendingProductImageUpload = {
 type ProductGalleryItem =
   | {
       type: "existing";
+      id?: string | null;
       url: string;
       key: string | null;
       alt: string | null;
@@ -94,7 +96,7 @@ function parseExistingImages(formData: FormData): ResolvedProductImage[] {
       return [];
     }
 
-    const image = item as { url?: unknown; key?: unknown; alt?: unknown };
+    const image = item as { id?: unknown; url?: unknown; key?: unknown; alt?: unknown };
 
     if (typeof image.url !== "string" || !image.url) {
       return [];
@@ -102,6 +104,7 @@ function parseExistingImages(formData: FormData): ResolvedProductImage[] {
 
     return [
       {
+        sourceId: typeof image.id === "string" ? image.id : null,
         url: image.url,
         key: typeof image.key === "string" ? image.key : null,
         alt: typeof image.alt === "string" ? image.alt : null,
@@ -155,6 +158,7 @@ function parseGalleryItems(formData: FormData): ProductGalleryItem[] | null {
       return [
         {
           type: "existing" as const,
+          id: typeof image.id === "string" ? image.id : null,
           url: image.url,
           key: typeof image.key === "string" ? image.key : null,
           alt: typeof image.alt === "string" ? image.alt : null,
@@ -187,7 +191,71 @@ function normalizeVariationValues(values: unknown) {
     });
 }
 
-function parseVariationGroups(value: string | undefined): ProductVariation[] {
+function normalizeVariationKey(value: string) {
+  return value.trim().toLocaleLowerCase("pt-BR");
+}
+
+function isDirectImageUrl(value: string) {
+  return value.startsWith("/") || /^https?:\/\//i.test(value);
+}
+
+function buildImageUrlByReference(images: ResolvedProductImage[]) {
+  const imageUrlByReference = new Map<string, string>();
+
+  images.forEach((image) => {
+    if (image.sourceId) {
+      imageUrlByReference.set(image.sourceId, image.url);
+    }
+
+    if (image.key) {
+      imageUrlByReference.set(image.key, image.url);
+    }
+
+    imageUrlByReference.set(image.url, image.url);
+  });
+
+  return imageUrlByReference;
+}
+
+function normalizeVariationImageByValue(
+  imageByValue: unknown,
+  values: string[],
+  imageUrlByReference: Map<string, string>,
+) {
+  if (!imageByValue || typeof imageByValue !== "object") {
+    return undefined;
+  }
+
+  const entries = Object.entries(imageByValue as Record<string, unknown>);
+  const imageRefByNormalizedValue = new Map(
+    entries.map(([value, imageRef]) => [
+      normalizeVariationKey(value),
+      typeof imageRef === "string" ? imageRef.trim() : "",
+    ]),
+  );
+  const normalizedImageByValue: Record<string, string> = {};
+
+  values.forEach((value) => {
+    const imageRef = imageRefByNormalizedValue.get(normalizeVariationKey(value));
+
+    if (!imageRef) {
+      return;
+    }
+
+    const imageUrl = imageUrlByReference.get(imageRef) ?? (isDirectImageUrl(imageRef) ? imageRef : "");
+
+    if (imageUrl) {
+      normalizedImageByValue[value] = imageUrl;
+    }
+  });
+
+  return Object.keys(normalizedImageByValue).length ? normalizedImageByValue : undefined;
+}
+
+function parseVariationGroups(
+  value: string | undefined,
+  imageUrlByReference = new Map<string, string>(),
+): ProductVariation[] {
   if (!value?.trim()) {
     return [];
   }
@@ -215,6 +283,7 @@ function parseVariationGroups(value: string | undefined): ProductVariation[] {
       label?: unknown;
       values?: unknown;
       stockByValue?: unknown;
+      imageByValue?: unknown;
     };
     const label = String(variation.label ?? "").trim();
     const values = normalizeVariationValues(variation.values);
@@ -230,19 +299,31 @@ function parseVariationGroups(value: string | undefined): ProductVariation[] {
       variation.stockByValue,
       values,
     );
+    const imageByValue = normalizeVariationImageByValue(
+      variation.imageByValue,
+      values,
+      imageUrlByReference,
+    );
 
     return [
       {
         label,
         values,
         ...(stockByValue ? { stockByValue } : {}),
+        ...(imageByValue ? { imageByValue } : {}),
       },
     ];
   });
 }
 
-function toVariationPayload(payload: ProductPayload): ProductVariation[] {
-  const groupedVariations = parseVariationGroups(payload.variation_groups);
+function toVariationPayload(
+  payload: ProductPayload,
+  images: ResolvedProductImage[] = [],
+): ProductVariation[] {
+  const groupedVariations = parseVariationGroups(
+    payload.variation_groups,
+    buildImageUrlByReference(images),
+  );
 
   if (groupedVariations.length) {
     return groupedVariations;
@@ -292,6 +373,7 @@ async function resolveProductImages(
             [
               uploadedImage.id,
               {
+                sourceId: uploadedImage.id,
                 key: uploadedImage.image.key,
                 url: uploadedImage.image.url,
                 alt: payload.name,
@@ -307,6 +389,7 @@ async function resolveProductImages(
       if (galleryItem.type === "existing") {
         return [
           {
+            sourceId: galleryItem.id,
             url: galleryItem.url,
             key: galleryItem.key,
             alt: galleryItem.alt,
@@ -329,6 +412,7 @@ async function resolveProductImages(
 export async function createProduct(formData: FormData) {
   const payload = parseProductPayload(formData);
   const images = await resolveProductImages(formData, payload);
+  const variations = toVariationPayload(payload, images);
   const product = await prisma.product.create({
     data: {
       name: payload.name,
@@ -338,7 +422,7 @@ export async function createProduct(formData: FormData) {
       compare_at_price: payload.compare_at_price || null,
       category_id: payload.category_id,
       stock: payload.stock,
-      variations: toVariationPayload(payload),
+      variations,
       featured: Boolean(payload.featured),
       is_offer: Boolean(payload.is_offer),
       images: images.length
@@ -363,6 +447,7 @@ export async function createProduct(formData: FormData) {
 export async function updateProduct(id: string, formData: FormData) {
   const payload = parseProductPayload(formData);
   const images = await resolveProductImages(formData, payload);
+  const variations = toVariationPayload(payload, images);
 
   await prisma.product.update({
     where: {
@@ -376,7 +461,7 @@ export async function updateProduct(id: string, formData: FormData) {
       compare_at_price: payload.compare_at_price || null,
       category_id: payload.category_id,
       stock: payload.stock,
-      variations: toVariationPayload(payload),
+      variations,
       featured: Boolean(payload.featured),
       is_offer: Boolean(payload.is_offer),
     },
@@ -426,6 +511,14 @@ export async function restoreProduct(id: string) {
     },
     data: {
       deleted_at: null,
+    },
+  });
+}
+
+export async function deleteProductPermanently(id: string) {
+  await prisma.product.delete({
+    where: {
+      id,
     },
   });
 }

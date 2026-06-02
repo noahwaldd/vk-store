@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Edit, RotateCcw, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, Edit, RotateCcw, SlidersHorizontal } from "lucide-react";
 import { toast } from "sonner";
 
 import type { ActionResult } from "@/app/admin/produtos/actions";
@@ -21,6 +21,7 @@ type AdminProductsClientProps = {
   products: Product[];
   categories: Category[];
   deleteAction: (id: string) => Promise<ActionResult>;
+  permanentDeleteAction: (id: string) => Promise<ActionResult>;
   restoreAction: (id: string) => Promise<ActionResult>;
 };
 
@@ -49,6 +50,7 @@ export function AdminProductsClient({
   products,
   categories,
   deleteAction,
+  permanentDeleteAction,
   restoreAction,
 }: AdminProductsClientProps) {
   const router = useRouter();
@@ -63,6 +65,7 @@ export function AdminProductsClient({
   const [maxPrice, setMaxPrice] = useState("");
   const [minStock, setMinStock] = useState("");
   const [maxStock, setMaxStock] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const filteredProducts = useMemo(() => {
@@ -216,10 +219,26 @@ export function AdminProductsClient({
       </div>
 
       <Card className="grid gap-4 p-4">
-        <div className="flex items-center gap-2 text-sm font-bold">
-          <SlidersHorizontal className="size-4" />
-          Filtros
-        </div>
+        <button
+          type="button"
+          className="focus-ring flex items-center justify-between gap-3 text-left"
+          aria-expanded={filtersOpen}
+          onClick={() => setFiltersOpen((open) => !open)}
+        >
+          <span className="flex items-center gap-2 text-sm font-bold">
+            <SlidersHorizontal className="size-4" />
+            Filtros
+          </span>
+          <span className="flex items-center gap-3 text-sm text-muted-foreground">
+            {filteredProducts.length} de {products.length} produto
+            {products.length === 1 ? "" : "s"}
+            <ChevronDown
+              className={`size-4 transition-transform ${filtersOpen ? "rotate-180" : ""}`}
+            />
+          </span>
+        </button>
+        {filtersOpen ? (
+          <>
         <div className="grid gap-3 md:grid-cols-4">
           <Input
             value={query}
@@ -350,6 +369,8 @@ export function AdminProductsClient({
             Limpar filtros
           </Button>
         </div>
+          </>
+        ) : null}
       </Card>
 
       {filteredProducts.length === 0 ? (
@@ -443,16 +464,24 @@ export function AdminProductsClient({
                             </Link>
                           </Button>
                           {product.deleted_at ? (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              aria-label="Restaurar"
-                              disabled={isPending}
-                              onClick={() => handleRestore(product.id)}
-                            >
-                              <RotateCcw />
-                            </Button>
+                            <>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                aria-label="Restaurar"
+                                disabled={isPending}
+                                onClick={() => handleRestore(product.id)}
+                              >
+                                <RotateCcw />
+                              </Button>
+                              <DeleteProductDialog
+                                productName={product.name}
+                                action={permanentDeleteAction.bind(null, product.id)}
+                                permanent
+                                disabled={isPending}
+                              />
+                            </>
                           ) : (
                             <DeleteProductDialog
                               productName={product.name}

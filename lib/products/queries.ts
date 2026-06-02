@@ -59,6 +59,7 @@ function normalizeVariations(value: Prisma.JsonValue): ProductVariation[] {
         label?: unknown;
         values?: unknown;
         stockByValue?: unknown;
+        imageByValue?: unknown;
       };
 
       if (!Array.isArray(variation.values)) {
@@ -70,11 +71,24 @@ function normalizeVariations(value: Prisma.JsonValue): ProductVariation[] {
         variation.stockByValue,
         values,
       );
+      const imageByValue =
+        variation.imageByValue && typeof variation.imageByValue === "object"
+          ? values.reduce<Record<string, string>>((imageMap, option) => {
+              const imageUrl = (variation.imageByValue as Record<string, unknown>)[option];
+
+              if (typeof imageUrl === "string" && imageUrl.trim()) {
+                imageMap[option] = imageUrl.trim();
+              }
+
+              return imageMap;
+            }, {})
+          : undefined;
 
       return [{
         label: String(variation.label ?? "Variação"),
         values,
         ...(stockByValue ? { stockByValue } : {}),
+        ...(imageByValue && Object.keys(imageByValue).length ? { imageByValue } : {}),
       }];
     });
 }

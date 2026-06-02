@@ -68,6 +68,7 @@ type VariationDraft = {
   label: string;
   values: string;
   stockByValue: Record<string, string>;
+  imageByValue: Record<string, string>;
 };
 
 const sizePresets = [
@@ -175,6 +176,7 @@ function createVariationDraft(
   values: readonly string[] = [],
   id = createVariationDraftId(),
   stockByValue: Record<string, number> = {},
+  imageByValue: Record<string, string> = {},
 ): VariationDraft {
   return {
     id,
@@ -185,6 +187,13 @@ function createVariationDraft(
         value,
         stockByValue[value] === undefined ? "" : String(stockByValue[value]),
       ]),
+    ),
+    imageByValue: Object.fromEntries(
+      values.flatMap((value) => {
+        const imageRef = imageByValue[value];
+
+        return imageRef ? [[value, imageRef]] : [];
+      }),
     ),
   };
 }
@@ -236,12 +245,22 @@ function normalizeVariationDrafts(groups: VariationDraft[]) {
 
       return stockMap;
     }, {});
+    const imageByValue = values.reduce<Record<string, string>>((imageMap, value) => {
+      const imageRef = group.imageByValue[value];
+
+      if (imageRef) {
+        imageMap[value] = imageRef;
+      }
+
+      return imageMap;
+    }, {});
 
     return [
       {
         label,
         values,
         ...(Object.keys(stockByValue).length ? { stockByValue } : {}),
+        ...(Object.keys(imageByValue).length ? { imageByValue } : {}),
       },
     ];
   });
@@ -257,6 +276,28 @@ function getGallerySignature(images: ManagedGalleryImage[]) {
       image.kind === "existing" ? `existing:${image.id}` : `pending:${image.id}`,
     ),
   );
+}
+
+function getGalleryImageUrl(image: ManagedGalleryImage) {
+  return image.kind === "existing" ? image.url : image.previewUrl;
+}
+
+function getGalleryImageLabel(image: ManagedGalleryImage, index: number) {
+  return `Foto ${index + 1}${image.kind === "pending" ? " (nova)" : ""}`;
+}
+
+function findGalleryImageByReference(images: ManagedGalleryImage[], imageRef?: string) {
+  if (!imageRef) {
+    return undefined;
+  }
+
+  return images.find((image) => {
+    if (image.id === imageRef) {
+      return true;
+    }
+
+    return image.kind === "existing" && (image.url === imageRef || image.key === imageRef);
+  });
 }
 
 function CompactSection({
@@ -299,6 +340,18 @@ function buildInitialGallery(product?: Product): ManagedGalleryImage[] {
   );
 }
 
+function findInitialImageReference(product: Product | undefined, imageRef: string | undefined) {
+  if (!product || !imageRef) {
+    return "";
+  }
+
+  return (
+    product.images.find(
+      (image) => image.id === imageRef || image.url === imageRef || image.key === imageRef,
+    )?.id ?? imageRef
+  );
+}
+
 function buildInitialVariationGroups(product?: Product): VariationDraft[] {
   const variations = product?.variations ?? [];
 
@@ -312,6 +365,13 @@ function buildInitialVariationGroups(product?: Product): VariationDraft[] {
       variation.values,
       `variation-initial-${index}`,
       variation.stockByValue,
+      Object.fromEntries(
+        variation.values.flatMap((value) => {
+          const imageRef = findInitialImageReference(product, variation.imageByValue?.[value]);
+
+          return imageRef ? [[value, imageRef]] : [];
+        }),
+      ),
     ),
   );
 }
@@ -521,6 +581,14 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
 
       return normalizeGalleryPositions(images.filter((image) => image.id !== imageId));
     });
+    setVariationGroups((groups) =>
+      groups.map((group) => ({
+        ...group,
+        imageByValue: Object.fromEntries(
+          Object.entries(group.imageByValue).filter(([, imageRef]) => imageRef !== imageId),
+        ),
+      })),
+    );
   }
 
   function applySizePreset(preset: (typeof sizePresets)[number]) {
@@ -583,11 +651,19 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
         const stockByValue = Object.fromEntries(
           mergedValues.map((value) => [value, group.stockByValue[value] ?? ""]),
         );
+        const imageByValue = Object.fromEntries(
+          mergedValues.flatMap((value) => {
+            const imageRef = group.imageByValue[value];
+
+            return imageRef ? [[value, imageRef]] : [];
+          }),
+        );
 
         return {
           ...group,
           values: mergedValues.join(", "),
           stockByValue,
+          imageByValue,
         };
       }),
     );
@@ -613,6 +689,11 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
               ([key]) => key.toLocaleLowerCase("pt-BR") !== valueKey,
             ),
           ),
+          imageByValue: Object.fromEntries(
+            Object.entries(group.imageByValue).filter(
+              ([key]) => key.toLocaleLowerCase("pt-BR") !== valueKey,
+            ),
+          ),
         };
       }),
     );
@@ -635,6 +716,33 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
             }
           : group,
       ),
+    );
+  }
+
+  function updateVariationValueImage(
+    groupId: string,
+    value: string,
+    imageRef: string,
+  ) {
+    setVariationGroups((groups) =>
+      groups.map((group) => {
+        if (group.id !== groupId) {
+          return group;
+        }
+
+        const nextImageByValue = { ...group.imageByValue };
+
+        if (imageRef) {
+          nextImageByValue[value] = imageRef;
+        } else {
+          delete nextImageByValue[value];
+        }
+
+        return {
+          ...group,
+          imageByValue: nextImageByValue,
+        };
+      }),
     );
   }
 
@@ -1051,39 +1159,88 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
                       <Label htmlFor={`variation-input-${group.id}`}>Opções</Label>
                       <div className="min-h-11 rounded-none border-2 border-border bg-background p-2">
                         {getVariationValues(group.values).length ? (
-                          <div className="flex min-w-0 flex-wrap gap-1.5">
-                            {getVariationValues(group.values).map((value) => (
-                              <span
-                                key={value}
-                                className="grid w-full max-w-full grid-cols-[minmax(0,1fr)_4.75rem_1.25rem] items-center gap-1 border-2 border-border bg-muted px-2 py-1 text-xs font-black sm:w-auto"
-                              >
-                                <span className="min-w-0 truncate">{value}</span>
-                                <Input
-                                  type="number"
-                                  min="0"
-                                  inputMode="numeric"
-                                  value={group.stockByValue[value] ?? ""}
-                                  placeholder="Est."
-                                  aria-label={`Estoque de ${value}`}
-                                  className="h-7 min-w-0 border bg-background px-2 text-xs"
-                                  onChange={(event) =>
-                                    updateVariationValueStock(
-                                      group.id,
-                                      value,
-                                      event.target.value,
-                                    )
-                                  }
-                                />
-                                <button
-                                  type="button"
-                                  aria-label={`Remover ${value}`}
-                                  className="grid size-4 shrink-0 place-items-center hover:text-destructive"
-                                  onClick={() => removeVariationValue(group.id, value)}
+                          <div className="grid min-w-0 gap-2 sm:grid-cols-2">
+                            {getVariationValues(group.values).map((value) => {
+                              const linkedImage = findGalleryImageByReference(
+                                galleryImages,
+                                group.imageByValue[value],
+                              );
+                              const linkedImageUrl = linkedImage
+                                ? getGalleryImageUrl(linkedImage)
+                                : "";
+
+                              return (
+                                <div
+                                  key={value}
+                                  className="grid min-w-0 gap-2 border-2 border-border bg-muted px-2 py-2"
                                 >
-                                  <X className="size-3" />
-                                </button>
-                              </span>
-                            ))}
+                                  <div className="flex min-w-0 items-center gap-2">
+                                    <div className="relative size-9 shrink-0 overflow-hidden border border-border bg-background">
+                                      {linkedImageUrl ? (
+                                        <Image
+                                          src={linkedImageUrl}
+                                          alt={value}
+                                          fill
+                                          sizes="36px"
+                                          className="object-cover"
+                                          unoptimized
+                                        />
+                                      ) : (
+                                        <Palette className="m-2 size-5 text-muted-foreground" />
+                                      )}
+                                    </div>
+                                    <span className="min-w-0 flex-1 truncate text-xs font-black">
+                                      {value}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      aria-label={`Remover ${value}`}
+                                      className="grid size-7 shrink-0 place-items-center hover:text-destructive"
+                                      onClick={() => removeVariationValue(group.id, value)}
+                                    >
+                                      <X className="size-3.5" />
+                                    </button>
+                                  </div>
+                                  <div className="grid min-w-0 gap-2 min-[460px]:grid-cols-[5rem_minmax(0,1fr)]">
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      inputMode="numeric"
+                                      value={group.stockByValue[value] ?? ""}
+                                      placeholder="Est."
+                                      aria-label={`Estoque de ${value}`}
+                                      className="h-8 min-w-0 border bg-background px-2 text-xs"
+                                      onChange={(event) =>
+                                        updateVariationValueStock(
+                                          group.id,
+                                          value,
+                                          event.target.value,
+                                        )
+                                      }
+                                    />
+                                    <select
+                                      value={group.imageByValue[value] ?? ""}
+                                      aria-label={`Foto de ${value}`}
+                                      className="focus-ring h-8 min-w-0 rounded-none border-2 border-border bg-background px-2 text-xs font-semibold"
+                                      onChange={(event) =>
+                                        updateVariationValueImage(
+                                          group.id,
+                                          value,
+                                          event.target.value,
+                                        )
+                                      }
+                                    >
+                                      <option value="">Sem foto</option>
+                                      {galleryImages.map((image, imageIndex) => (
+                                        <option key={image.id} value={image.id}>
+                                          {getGalleryImageLabel(image, imageIndex)}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
                         ) : (
                           <p className="px-1 py-1 text-xs font-semibold text-muted-foreground">

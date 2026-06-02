@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, ImageIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,15 +26,38 @@ export function ProductImageGallery({
 }: ProductImageGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const activeImage = images[activeIndex];
+  const safeActiveIndex = images.length > 0 ? Math.min(activeIndex, images.length - 1) : 0;
+  const activeImage = images[safeActiveIndex];
   const hasMultipleImages = images.length > 1;
+
+  useEffect(() => {
+    function handleVariationImage(event: Event) {
+      const imageUrl = (event as CustomEvent<{ imageUrl?: string }>).detail?.imageUrl;
+
+      if (!imageUrl) {
+        return;
+      }
+
+      const nextIndex = images.findIndex((image) => image.url === imageUrl);
+
+      if (nextIndex >= 0) {
+        setActiveIndex(nextIndex);
+      }
+    }
+
+    window.addEventListener("vkstore:variation-image", handleVariationImage);
+
+    return () => {
+      window.removeEventListener("vkstore:variation-image", handleVariationImage);
+    };
+  }, [images]);
 
   function goToPrevious() {
     setActiveIndex((index) => (index === 0 ? images.length - 1 : index - 1));
   }
 
   function goToNext() {
-    setActiveIndex((index) => (index === images.length - 1 ? 0 : index + 1));
+    setActiveIndex((index) => (index >= images.length - 1 ? 0 : index + 1));
   }
 
   return (
@@ -87,7 +110,7 @@ export function ProductImageGallery({
               <ChevronRight />
             </Button>
             <div className="absolute bottom-3 left-3 bg-foreground px-3 py-1 text-xs font-black text-background">
-              {activeIndex + 1}/{images.length}
+              {safeActiveIndex + 1}/{images.length}
             </div>
           </>
         ) : null}
@@ -96,7 +119,7 @@ export function ProductImageGallery({
       {hasMultipleImages ? (
         <div className="scrollbar-none flex gap-2 overflow-x-auto pb-1">
           {images.map((image, index) => {
-            const selected = index === activeIndex;
+            const selected = index === safeActiveIndex;
 
             return (
               <button
@@ -169,7 +192,7 @@ export function ProductImageGallery({
                   <ChevronRight />
                 </Button>
                 <div className="absolute bottom-4 left-4 bg-background/92 px-3 py-1 text-xs font-black text-foreground backdrop-blur sm:bottom-6 sm:left-6">
-                  {activeIndex + 1}/{images.length}
+                  {safeActiveIndex + 1}/{images.length}
                 </div>
               </>
             ) : null}

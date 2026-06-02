@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 
@@ -15,6 +15,26 @@ import type { Product } from "@/types/product";
 type ProductDetailActionsProps = {
   product: Product;
 };
+
+function normalizeVariationKey(value: string) {
+  return value.trim().toLocaleLowerCase("pt-BR");
+}
+
+function getVariationImageUrl(
+  imageByValue: Record<string, string> | undefined,
+  value: string | undefined,
+) {
+  if (!imageByValue || !value) {
+    return undefined;
+  }
+
+  return (
+    imageByValue[value] ??
+    Object.entries(imageByValue).find(
+      ([key]) => normalizeVariationKey(key) === normalizeVariationKey(value),
+    )?.[1]
+  );
+}
 
 export function ProductDetailActions({ product }: ProductDetailActionsProps) {
   const variationGroups = useMemo(
@@ -64,6 +84,34 @@ export function ProductDetailActions({ product }: ProductDetailActionsProps) {
       ? selected.map((variation) => `${variation.label}: ${variation.value}`).join(" / ")
       : undefined;
   }, [selectedVariations, variationGroups]);
+  const selectedImageUrl = useMemo(() => {
+    for (const variation of variationGroups) {
+      const imageUrl = getVariationImageUrl(
+        variation.imageByValue,
+        selectedVariations[variation.key],
+      );
+
+      if (imageUrl) {
+        return imageUrl;
+      }
+    }
+
+    return undefined;
+  }, [selectedVariations, variationGroups]);
+
+  useEffect(() => {
+    if (!selectedImageUrl) {
+      return;
+    }
+
+    window.dispatchEvent(
+      new CustomEvent("vkstore:variation-image", {
+        detail: {
+          imageUrl: selectedImageUrl,
+        },
+      }),
+    );
+  }, [selectedImageUrl]);
 
   function handleAdd() {
     addItem({ ...product, stock: selectedStock }, variationLabel);

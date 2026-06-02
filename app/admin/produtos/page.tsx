@@ -4,6 +4,7 @@ import { PackagePlus } from "lucide-react";
 
 import {
   deleteProductAction,
+  permanentDeleteProductAction,
   restoreProductAction,
 } from "@/app/admin/produtos/actions";
 import { AdminProductsClient } from "@/components/AdminProductsClient";
@@ -53,6 +54,7 @@ export default async function AdminProductsPage() {
           products={products}
           categories={categories}
           deleteAction={deleteProductAction}
+          permanentDeleteAction={permanentDeleteProductAction}
           restoreAction={restoreProductAction}
         />
       )}

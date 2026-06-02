@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdminUser } from "@/lib/auth";
 import {
   createProduct,
+  deleteProductPermanently,
   restoreProduct,
   softDeleteProduct,
   updateProduct,
@@ -96,6 +97,26 @@ export async function restoreProductAction(id: string): Promise<ActionResult> {
     return {
       ok: true,
       message: "Produto restaurado na vitrine.",
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      message: getErrorMessage(error),
+    };
+  }
+}
+
+export async function permanentDeleteProductAction(id: string): Promise<ActionResult> {
+  try {
+    await requireAdminUser();
+    await deleteProductPermanently(id);
+    revalidatePath("/");
+    revalidatePath("/produtos");
+    revalidatePath("/admin/produtos");
+
+    return {
+      ok: true,
+      message: "Produto excluído permanentemente.",
     };
   } catch (error) {
     return {

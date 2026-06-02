@@ -21,25 +21,41 @@ import {
 type DeleteProductDialogProps = {
   productName: string;
   action: () => Promise<ActionResult>;
+  permanent?: boolean;
+  disabled?: boolean;
 };
 
-export function DeleteProductDialog({ productName, action }: DeleteProductDialogProps) {
+export function DeleteProductDialog({
+  productName,
+  action,
+  permanent = false,
+  disabled = false,
+}: DeleteProductDialogProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label={`Excluir ${productName}`}>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={`${permanent ? "Excluir permanentemente" : "Excluir"} ${productName}`}
+          disabled={disabled}
+          className={permanent ? "text-destructive hover:text-destructive" : undefined}
+        >
           <Trash2 />
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Remover produto?</DialogTitle>
+          <DialogTitle>
+            {permanent ? "Excluir produto permanentemente?" : "Remover produto?"}
+          </DialogTitle>
           <DialogDescription>
-            O produto deixará de aparecer na vitrine, mas continuará salvo no banco com
-            soft delete.
+            {permanent
+              ? "Esta acao apaga o produto do banco e nao pode ser desfeita."
+              : "O produto deixara de aparecer na vitrine, mas continuara salvo para recuperacao."}
           </DialogDescription>
         </DialogHeader>
         <div className="rounded-none bg-muted p-3 text-sm font-semibold">{productName}</div>
@@ -49,7 +65,7 @@ export function DeleteProductDialog({ productName, action }: DeleteProductDialog
           </DialogClose>
           <Button
             variant="destructive"
-            disabled={isPending}
+            disabled={isPending || disabled}
             onClick={() => {
               startTransition(async () => {
                 const result = await action();
@@ -63,7 +79,7 @@ export function DeleteProductDialog({ productName, action }: DeleteProductDialog
               });
             }}
           >
-            Remover
+            {permanent ? "Excluir definitivamente" : "Remover"}
           </Button>
         </DialogFooter>
       </DialogContent>
