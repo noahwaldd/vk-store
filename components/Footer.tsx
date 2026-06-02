@@ -127,7 +127,15 @@ export async function Footer() {
       <div className="container-shell border-t-2 border-background/20 py-5 text-center text-xs text-background/70">
         <p>© 2026 VK Store. Todos os direitos reservados.</p>
         <p className="mt-2">
-          Desenvolvido por <a href="#" className="font-black text-background transition-colors hover:text-street-lime">Novality</a>.
+          Desenvolvido por{" "}
+          <a
+            href="https://novality.com.br/"
+            target="_blank"
+            rel="noreferrer"
+            className="font-black text-background transition-colors hover:text-street-lime"
+          >
+            Novality
+          </a>.
         </p>
       </div>
     </footer>
