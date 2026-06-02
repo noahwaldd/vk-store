@@ -395,6 +395,7 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
     initialVariationGroups,
   );
   const [variationInputs, setVariationInputs] = useState<Record<string, string>>({});
+  const [isCategoryVariationCompact, setIsCategoryVariationCompact] = useState(false);
   const [draggedImageId, setDraggedImageId] = useState<string | null>(null);
   const [categoryQuery, setCategoryQuery] = useState("");
   const [hasStockEnabled, setHasStockEnabled] = useState(
@@ -471,6 +472,7 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
     (total, group) => total + group.values.length,
     0,
   );
+  const shouldShowCompactMode = categories.length > 12 || variationGroups.length > 1;
 
   function appendField(formData: FormData, key: keyof ProductFormValues, value: unknown) {
     if (value === undefined || value === null) {
@@ -1005,8 +1007,8 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
           description={`${selectedCategory?.name ?? "Sem categoria"} • ${variationCount || "sem"} opção${variationCount === 1 ? "" : "ões"}`}
           defaultOpen={!product}
         >
-        <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-          <div className="grid gap-3">
+        <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(16rem,0.78fr)_minmax(0,1.22fr)]">
+          <div className="grid min-w-0 gap-3 self-start xl:sticky xl:top-24">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <Label>Categoria</Label>
@@ -1021,6 +1023,23 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
                 </Link>
               </Button>
             </div>
+            {shouldShowCompactMode ? (
+              <button
+                type="button"
+                aria-pressed={isCategoryVariationCompact}
+                className={`focus-ring flex min-h-10 items-center justify-between gap-3 border-2 px-3 py-2 text-left text-xs font-black uppercase transition-colors ${
+                  isCategoryVariationCompact
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-border bg-background text-foreground hover:border-foreground"
+                }`}
+                onClick={() => setIsCategoryVariationCompact((current) => !current)}
+              >
+                <span>Modo compacto</span>
+                <span className="font-semibold normal-case opacity-80">
+                  {isCategoryVariationCompact ? "Ativo" : "Inativo"}
+                </span>
+              </button>
+            ) : null}
             <input type="hidden" {...register("category_id")} />
             <label>
               <span className="sr-only">Buscar categoria</span>
@@ -1035,7 +1054,13 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
                 Cadastre uma categoria antes de criar produtos.
               </div>
             ) : (
-              <div className="grid max-h-56 gap-2 overflow-y-auto border-2 border-border p-2 sm:grid-cols-2 xl:grid-cols-1">
+              <div
+                className={`grid gap-2 overflow-y-auto border-2 border-border p-2 sm:grid-cols-2 xl:grid-cols-1 ${
+                  isCategoryVariationCompact
+                    ? "max-h-72 xl:max-h-[calc(100vh-18rem)]"
+                    : "max-h-64 xl:max-h-[calc(100vh-16rem)]"
+                }`}
+              >
                 {filteredCategories.map((category) => {
                   const selected = category.id === selectedCategoryId;
 
@@ -1050,13 +1075,17 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
                           shouldValidate: true,
                         })
                       }
-                      className={`min-w-0 border-2 p-2.5 text-left transition-colors ${
+                      className={`min-w-0 border-2 text-left transition-colors ${
                         selected
                           ? "border-foreground bg-foreground text-background"
                           : "border-border bg-background hover:border-foreground"
-                      }`}
+                      } ${isCategoryVariationCompact ? "p-2" : "p-2.5"}`}
                     >
-                      <span className="block truncate text-sm font-black uppercase">
+                      <span
+                        className={`block truncate font-black uppercase ${
+                          isCategoryVariationCompact ? "text-xs" : "text-sm"
+                        }`}
+                      >
                         {category.name}
                       </span>
                       <span
@@ -1076,7 +1105,7 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
             ) : null}
           </div>
 
-          <div className="grid gap-3 self-start">
+          <div className="grid min-w-0 gap-3 self-start">
             <div className="grid gap-2">
               <Label>Tipos de tamanho e variação</Label>
               <div className="flex gap-2 overflow-x-auto pb-1">
@@ -1104,7 +1133,7 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
               </div>
             </div>
 
-            <div className="grid gap-3">
+            <div className="grid min-w-0 gap-3">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <Label>Grupos de variação</Label>
@@ -1118,10 +1147,19 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
                 </Button>
               </div>
 
+              <div
+                className={
+                  isCategoryVariationCompact && variationGroups.length > 1
+                    ? "grid max-h-[36rem] min-w-0 gap-3 overflow-y-auto pr-1"
+                    : "grid min-w-0 gap-3"
+                }
+              >
               {variationGroups.map((group, index) => (
                 <div
                   key={group.id}
-                  className="grid min-w-0 gap-3 border-2 border-border bg-muted/30 p-3"
+                  className={`grid min-w-0 border-2 border-border bg-muted/30 ${
+                    isCategoryVariationCompact ? "gap-2 p-2.5" : "gap-3 p-3"
+                  }`}
                 >
                   <div className="flex min-w-0 items-center justify-between gap-2">
                     <div className="min-w-0">
@@ -1142,7 +1180,13 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
                       <X />
                     </Button>
                   </div>
-                  <div className="grid min-w-0 gap-3 xl:grid-cols-[160px_minmax(0,1fr)]">
+                  <div
+                    className={`grid min-w-0 gap-3 ${
+                      isCategoryVariationCompact
+                        ? "xl:grid-cols-[140px_minmax(0,1fr)]"
+                        : "xl:grid-cols-[160px_minmax(0,1fr)]"
+                    }`}
+                  >
                     <div className="grid gap-2 self-start">
                       <Label htmlFor={`variation-label-${group.id}`}>Nome</Label>
                       <Input
@@ -1157,9 +1201,19 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
 
                     <div className="grid min-w-0 gap-2">
                       <Label htmlFor={`variation-input-${group.id}`}>Opções</Label>
-                      <div className="min-h-11 rounded-none border-2 border-border bg-background p-2">
+                      <div
+                        className={`min-h-11 rounded-none border-2 border-border bg-background p-2 ${
+                          isCategoryVariationCompact ? "max-h-72 overflow-y-auto" : ""
+                        }`}
+                      >
                         {getVariationValues(group.values).length ? (
-                          <div className="grid min-w-0 gap-2 sm:grid-cols-2">
+                          <div
+                            className={`grid min-w-0 gap-2 ${
+                              isCategoryVariationCompact
+                                ? "sm:grid-cols-1 2xl:grid-cols-2"
+                                : "sm:grid-cols-2"
+                            }`}
+                          >
                             {getVariationValues(group.values).map((value) => {
                               const linkedImage = findGalleryImageByReference(
                                 galleryImages,
@@ -1172,7 +1226,9 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
                               return (
                                 <div
                                   key={value}
-                                  className="grid min-w-0 gap-2 border-2 border-border bg-muted px-2 py-2"
+                                  className={`grid min-w-0 border-2 border-border bg-muted px-2 ${
+                                    isCategoryVariationCompact ? "gap-1.5 py-1.5" : "gap-2 py-2"
+                                  }`}
                                 >
                                   <div className="flex min-w-0 items-center gap-2">
                                     <div className="relative size-9 shrink-0 overflow-hidden border border-border bg-background">
@@ -1201,7 +1257,13 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
                                       <X className="size-3.5" />
                                     </button>
                                   </div>
-                                  <div className="grid min-w-0 gap-2 min-[460px]:grid-cols-[5rem_minmax(0,1fr)]">
+                                  <div
+                                    className={`grid min-w-0 gap-2 ${
+                                      isCategoryVariationCompact
+                                        ? "min-[460px]:grid-cols-[4.5rem_minmax(0,1fr)]"
+                                        : "min-[460px]:grid-cols-[5rem_minmax(0,1fr)]"
+                                    }`}
+                                  >
                                     <Input
                                       type="number"
                                       min="0"
@@ -1275,6 +1337,7 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
                   </div>
                 </div>
               ))}
+              </div>
               {errors.variation_groups ? (
                 <p className="text-sm text-destructive">
                   {errors.variation_groups.message}
