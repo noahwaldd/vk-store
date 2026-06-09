@@ -435,6 +435,7 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
     register,
     handleSubmit,
     setValue,
+    setError,
     formState: { errors, isDirty },
   } = form;
   const selectedCategoryId = useWatch({
@@ -868,6 +869,14 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
         router.push("/admin/produtos");
         router.refresh();
       } else {
+        if (result.field === "name") {
+          setError(
+            "name",
+            { type: "server", message: result.message },
+            { shouldFocus: true },
+          );
+        }
+
         toast.error(result.message);
       }
     } catch (error) {
@@ -888,7 +897,10 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
           Guia simples de cadastro
         </h2>
         <div className="grid gap-2 text-sm font-medium leading-6 md:grid-cols-3">
-          <p>Use um nome que o cliente reconheça rápido, como Camiseta preta ou Perfume 100ml.</p>
+          <p>
+            Use um nome único e específico, como Camiseta preta oversized ou Perfume
+            floral 100ml.
+          </p>
           <p>Envie foto clara, com o produto inteiro aparecendo e sem muita coisa no fundo.</p>
           <p>Confira preço, estoque, categoria e tamanhos antes de salvar.</p>
         </div>
@@ -905,8 +917,19 @@ export function ProductForm({ categories, product, action }: ProductFormProps) {
         >
         <div className="grid gap-2">
           <Label htmlFor="name">Nome</Label>
-          <Input id="name" placeholder="Camiseta, perfume, boné..." {...register("name")} />
-          {errors.name ? <p className="text-sm text-destructive">{errors.name.message}</p> : null}
+          <Input
+            id="name"
+            placeholder="Camiseta preta oversized, perfume floral 100ml..."
+            aria-describedby="name-help"
+            aria-invalid={Boolean(errors.name)}
+            {...register("name")}
+          />
+          <p id="name-help" className="text-xs font-medium text-muted-foreground">
+            Inclua cor, modelo, material, coleção ou volume para diferenciar o produto.
+          </p>
+          {errors.name ? (
+            <p className="break-words text-sm text-destructive">{errors.name.message}</p>
+          ) : null}
         </div>
 
         <div className="grid gap-2">

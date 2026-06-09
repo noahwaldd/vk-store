@@ -5,6 +5,15 @@ import { slugify } from "@/lib/utils";
 import { normalizeVariationStockByValue } from "@/lib/variation-stock";
 import type { ProductVariation } from "@/types/product";
 
+export class ProductNameError extends Error {
+  field = "name" as const;
+
+  constructor(message: string) {
+    super(message);
+    this.name = "ProductNameError";
+  }
+}
+
 export function parseProductPayload(formData: FormData): ProductPayload {
   const payload = {
     name: formData.get("name"),
@@ -193,6 +202,81 @@ function normalizeVariationValues(values: unknown) {
 
 function normalizeVariationKey(value: string) {
   return value.trim().toLocaleLowerCase("pt-BR");
+}
+
+function buildProductSlug(name: string) {
+  const slug = slugify(name);
+
+  if (!slug) {
+    throw new ProductNameError(
+      "Informe um nome com letras ou números para gerar uma URL válida.",
+    );
+  }
+
+  return slug;
+}
+
+function getProductNameConflictMessage(conflict: {
+  name: string;
+  deleted_at: Date | null;
+}) {
+  if (conflict.deleted_at) {
+    return `Já existe um produto removido chamado "${conflict.name}". Restaure esse produto ou exclua-o permanentemente antes de usar esse nome.`;
+  }
+
+  return `Já existe um produto ativo chamado "${conflict.name}". Use um nome mais específico, com cor, modelo, material, coleção ou volume.`;
+}
+
+async function assertUniqueProductSlug(slug: string, currentProductId?: string) {
+  const conflict = await prisma.product.findFirst({
+    where: {
+      slug,
+      ...(currentProductId
+        ? {
+            id: {
+              not: currentProductId,
+            },
+          }
+        : {}),
+    },
+    select: {
+      name: true,
+      deleted_at: true,
+    },
+  });
+
+  if (conflict) {
+    throw new ProductNameError(getProductNameConflictMessage(conflict));
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isProductSlugUniqueConstraintError(error: unknown) {
+  if (!isRecord(error) || error.code !== "P2002") {
+    return false;
+  }
+
+  const meta = isRecord(error.meta) ? error.meta : {};
+  const target = meta.target;
+
+  if (Array.isArray(target)) {
+    return target.includes("slug");
+  }
+
+  return typeof target === "string" && target.includes("slug");
+}
+
+function normalizeProductWriteError(error: unknown) {
+  if (isProductSlugUniqueConstraintError(error)) {
+    return new ProductNameError(
+      "Já existe um produto usando esse nome. Use um nome mais específico para diferenciar o item.",
+    );
+  }
+
+  return error;
 }
 
 function isDirectImageUrl(value: string) {
@@ -411,61 +495,78 @@ async function resolveProductImages(
 
 export async function createProduct(formData: FormData) {
   const payload = parseProductPayload(formData);
+  const slug = buildProductSlug(payload.name);
+
+  await assertUniqueProductSlug(slug);
+
   const images = await resolveProductImages(formData, payload);
   const variations = toVariationPayload(payload, images);
-  const product = await prisma.product.create({
-    data: {
-      name: payload.name,
-      slug: slugify(payload.name),
-      description: payload.description,
-      price: payload.price,
-      compare_at_price: payload.compare_at_price || null,
-      category_id: payload.category_id,
-      stock: payload.stock,
-      variations,
-      featured: Boolean(payload.featured),
-      is_offer: Boolean(payload.is_offer),
-      images: images.length
-        ? {
-            create: images.map((image, index) => ({
-              url: image.url,
-              key: image.key,
-              alt: image.alt ?? payload.name,
-              position: index + 1,
-            })),
-          }
-        : undefined,
-    },
-    select: {
-      id: true,
-    },
-  });
 
-  return product.id;
+  try {
+    const product = await prisma.product.create({
+      data: {
+        name: payload.name,
+        slug,
+        description: payload.description,
+        price: payload.price,
+        compare_at_price: payload.compare_at_price || null,
+        category_id: payload.category_id,
+        stock: payload.stock,
+        variations,
+        featured: Boolean(payload.featured),
+        is_offer: Boolean(payload.is_offer),
+        images: images.length
+          ? {
+              create: images.map((image, index) => ({
+                url: image.url,
+                key: image.key,
+                alt: image.alt ?? payload.name,
+                position: index + 1,
+              })),
+            }
+          : undefined,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    return product.id;
+  } catch (error) {
+    throw normalizeProductWriteError(error);
+  }
 }
 
 export async function updateProduct(id: string, formData: FormData) {
   const payload = parseProductPayload(formData);
+  const slug = buildProductSlug(payload.name);
+
+  await assertUniqueProductSlug(slug, id);
+
   const images = await resolveProductImages(formData, payload);
   const variations = toVariationPayload(payload, images);
 
-  await prisma.product.update({
-    where: {
-      id,
-    },
-    data: {
-      name: payload.name,
-      slug: slugify(payload.name),
-      description: payload.description,
-      price: payload.price,
-      compare_at_price: payload.compare_at_price || null,
-      category_id: payload.category_id,
-      stock: payload.stock,
-      variations,
-      featured: Boolean(payload.featured),
-      is_offer: Boolean(payload.is_offer),
-    },
-  });
+  try {
+    await prisma.product.update({
+      where: {
+        id,
+      },
+      data: {
+        name: payload.name,
+        slug,
+        description: payload.description,
+        price: payload.price,
+        compare_at_price: payload.compare_at_price || null,
+        category_id: payload.category_id,
+        stock: payload.stock,
+        variations,
+        featured: Boolean(payload.featured),
+        is_offer: Boolean(payload.is_offer),
+      },
+    });
+  } catch (error) {
+    throw normalizeProductWriteError(error);
+  }
 
   if (images.length) {
     await prisma.$transaction([

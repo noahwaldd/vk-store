@@ -16,6 +16,7 @@ export {
   createProduct,
   deleteProductPermanently,
   parseProductPayload,
+  ProductNameError,
   restoreProduct,
   softDeleteProduct,
   updateProduct,

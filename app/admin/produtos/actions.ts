@@ -6,6 +6,7 @@ import { requireAdminUser } from "@/lib/auth";
 import {
   createProduct,
   deleteProductPermanently,
+  ProductNameError,
   restoreProduct,
   softDeleteProduct,
   updateProduct,
@@ -14,12 +15,17 @@ import {
 export type ActionResult = {
   ok: boolean;
   message: string;
+  field?: "name";
 };
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error
     ? error.message
     : "Não foi possível concluir a ação. Tente novamente.";
+}
+
+function getErrorField(error: unknown): ActionResult["field"] {
+  return error instanceof ProductNameError ? error.field : undefined;
 }
 
 export async function createProductAction(formData: FormData): Promise<ActionResult> {
@@ -38,6 +44,7 @@ export async function createProductAction(formData: FormData): Promise<ActionRes
     return {
       ok: false,
       message: getErrorMessage(error),
+      field: getErrorField(error),
     };
   }
 }
@@ -62,6 +69,7 @@ export async function updateProductAction(
     return {
       ok: false,
       message: getErrorMessage(error),
+      field: getErrorField(error),
     };
   }
 }
