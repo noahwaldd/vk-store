@@ -30,6 +30,8 @@ import { HideOnAuthRoutes } from "@/components/RouteVisibility";
 import { getCouponsSetting } from "@/lib/site-settings";
 import "./globals.css";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: {
     default: "VK Store",

@@ -1,5 +1,7 @@
 import "server-only";
 
+import { unstable_noStore as noStore } from "next/cache";
+
 import {
   defaultCoupons,
   normalizeCouponCode,
@@ -276,6 +278,8 @@ function parseCoupons(value: unknown): DiscountCoupon[] {
 }
 
 export async function getLoginImageSetting() {
+  noStore();
+
   const setting = await prisma.siteSetting.findUnique({
     where: {
       key: loginImageSettingKey,
@@ -286,6 +290,8 @@ export async function getLoginImageSetting() {
 }
 
 export async function getHeroImageSetting() {
+  noStore();
+
   const setting = await prisma.siteSetting.findUnique({
     where: {
       key: heroImageSettingKey,
@@ -296,6 +302,8 @@ export async function getHeroImageSetting() {
 }
 
 export async function getOfferSectionSetting() {
+  noStore();
+
   const setting = await prisma.siteSetting.findUnique({
     where: {
       key: offerSectionSettingKey,
@@ -306,6 +314,8 @@ export async function getOfferSectionSetting() {
 }
 
 export async function getPromoBannerSetting() {
+  noStore();
+
   const setting = await prisma.siteSetting.findUnique({
     where: {
       key: promoBannerSettingKey,
@@ -316,6 +326,8 @@ export async function getPromoBannerSetting() {
 }
 
 export async function getCouponsSetting() {
+  noStore();
+
   const setting = await prisma.siteSetting.findUnique({
     where: {
       key: couponsSettingKey,
