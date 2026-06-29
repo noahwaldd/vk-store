@@ -13,10 +13,10 @@ if (!databaseUrl) {
 }
 
 const poolMax = Number.parseInt(process.env.DATABASE_POOL_MAX ?? "", 10);
-const ssl = getDatabaseSsl(databaseUrl);
+const { connectionString, ssl } = getDatabaseConnection(databaseUrl);
 
 const adapterConfig: PoolConfig = {
-  connectionString: databaseUrl,
+  connectionString,
   max: Number.isFinite(poolMax) && poolMax > 0
     ? poolMax
     : process.env.NODE_ENV === "production"
@@ -37,9 +37,12 @@ if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }
 
-function getDatabaseSsl(connectionString: string): PoolConfig["ssl"] | undefined {
+function getDatabaseConnection(connectionString: string): {
+  connectionString: string;
+  ssl: PoolConfig["ssl"] | undefined;
+} {
   if (process.env.DATABASE_SSL === "false") {
-    return false;
+    return { connectionString, ssl: false };
   }
 
   const rejectUnauthorized =
@@ -49,21 +52,29 @@ function getDatabaseSsl(connectionString: string): PoolConfig["ssl"] | undefined
     const url = new URL(connectionString);
     const sslMode = url.searchParams.get("sslmode");
 
-    if (sslMode && sslMode !== "disable") {
-      return undefined;
+    if (sslMode === "disable") {
+      return { connectionString, ssl: false };
+    }
+
+    if (sslMode) {
+      url.searchParams.delete("sslmode");
+      return {
+        connectionString: url.toString(),
+        ssl: { rejectUnauthorized },
+      };
     }
 
     if (
       process.env.DATABASE_SSL === "true" ||
       url.hostname.endsWith(".rds.amazonaws.com")
     ) {
-      return { rejectUnauthorized };
+      return { connectionString, ssl: { rejectUnauthorized } };
     }
   } catch {
     if (process.env.DATABASE_SSL === "true") {
-      return { rejectUnauthorized };
+      return { connectionString, ssl: { rejectUnauthorized } };
     }
   }
 
-  return undefined;
+  return { connectionString, ssl: undefined };
 }
